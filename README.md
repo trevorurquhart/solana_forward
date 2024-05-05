@@ -20,8 +20,9 @@ $ solana-test-validator
 $ yarn run test
 
 # Deploy to local validator
-$ cargo build-bpf
-$ solana program deploy ./target/deploy/solana_forward.so
+# cargo build-bpf
+# solana program deploy ./target/deploy/solana_forward.so
+$ ./build_forward.sh
 ````
 
 #### Useful Solana commands

@@ -1,6 +1,8 @@
 use borsh::BorshSerialize;
+use borsh::object_length;
+
 use solana_program::{
-    account_info::{next_account_info, AccountInfo},
+    account_info::{AccountInfo, next_account_info},
     entrypoint::ProgramResult,
     program::invoke,
     pubkey::Pubkey,
@@ -22,8 +24,9 @@ pub fn create_forward(
     let payer = next_account_info(accounts_iter)?;
     let system_program = next_account_info(accounts_iter)?;
 
-    // let account_span = (forward.try_to_vec()?).len();
-    let account_span = 4;
+
+    let account_span = object_length(&forward)?;
+    // let account_span = 4;
     let lamports_required = (Rent::get()?).minimum_balance(account_span);
 
     invoke(
