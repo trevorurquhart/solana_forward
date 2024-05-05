@@ -1,10 +1,13 @@
 import {
     Connection,
     Keypair,
-    sendAndConfirmTransaction,
+    sendAndConfirmTransaction, SystemProgram,
     Transaction,
     TransactionInstruction,
 } from '@solana/web3.js';
+import * as borsh from "borsh";
+import { Buffer } from "buffer";
+
 
 function createKeypairFromFile(path: string): Keypair {
     return Keypair.fromSecretKey(
@@ -19,24 +22,58 @@ describe("hello-solana", () => {
     const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
     const program = createKeypairFromFile('./target/deploy/solana_forward-keypair.json');
 
-    it("Say hello!", async () => {
+    class Assignable {
+        constructor(properties) {
+            Object.keys(properties).map((key) => {
+                return (this[key] = properties[key]);
+            });
+        };
+    }
 
-        // We set up our instruction first.
-        //
+    class Forward extends Assignable {
+        toBuffer() { return Buffer.from(borsh.serialize(ForwardSchema, this)) }
+
+        static fromBuffer(buffer: Buffer) {
+            return borsh.deserialize(ForwardSchema, Forward, buffer);
+        };
+    }
+
+    const ForwardSchema = new Map([
+        [ Forward, {
+            kind: 'struct',
+            fields: [
+                ['id', 'u32'],
+            ],
+        }]
+    ]);
+
+    const forward = Keypair.generate();
+
+    it("Initialise forward!", async () => {
+
         let ix = new TransactionInstruction({
             keys: [
-                {pubkey: payer.publicKey, isSigner: true, isWritable: true}
+                {pubkey: forward.publicKey, isSigner: true, isWritable: true},
+                {pubkey: payer.publicKey, isSigner: true, isWritable: true},
+                {pubkey: SystemProgram.programId, isSigner: false, isWritable: false}
             ],
             programId: program.publicKey,
-            data: Buffer.alloc(0), // No data
+            data: (
+                new Forward({
+                    id: 123456,
+                })
+            ).toBuffer(),
         });
-
-        // Now we send the transaction over RPC
-        //
         await sendAndConfirmTransaction(
             connection,
-            new Transaction().add(ix), // Add our instruction (you can add more than one)
-            [payer]
+            new Transaction().add(ix),
+            [payer, forward]
         );
+    });
+
+    it("Read forward data", async () => {
+        const forwardInfo = await connection.getAccountInfo(forward.publicKey);
+        const readAddressInfo = Forward.fromBuffer(forwardInfo.data);
+        console.log(`Id     : ${readAddressInfo.id}`);
     });
 });
