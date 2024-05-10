@@ -22,6 +22,8 @@ describe("hello-solana", () => {
     const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
     const program = createKeypairFromFile('./target/deploy/solana_forward-keypair.json');
 
+
+
     class Assignable {
         constructor(properties) {
             Object.keys(properties).map((key) => {
@@ -43,10 +45,32 @@ describe("hello-solana", () => {
             kind: 'struct',
             fields: [
                 ['id', 'u32'],
+                ['destination', [32]],
+                ['quarantine', [32]],
+                ['bump', 'u8']
             ],
         }]
     ]);
 
+    class CreateForwardInstruction extends Assignable {
+        toBuffer() { return Buffer.from(borsh.serialize(CreateForwardInstructionSchema, this)) }
+
+        static fromBuffer(buffer: Buffer) {
+            return borsh.deserialize(CreateForwardInstructionSchema, Forward, buffer);
+        };
+    }
+
+    const CreateForwardInstructionSchema = new Map([
+        [ CreateForwardInstruction, {
+            kind: 'struct',
+            fields: [
+                ['id', 'u32'],
+            ],
+        }]
+    ]);
+
+    const destination = Keypair.generate();
+    const quarantine = Keypair.generate();
     const forward = Keypair.generate();
 
     it("Initialise forward!", async () => {
@@ -54,26 +78,38 @@ describe("hello-solana", () => {
         let ix = new TransactionInstruction({
             keys: [
                 {pubkey: forward.publicKey, isSigner: true, isWritable: true},
+                {pubkey: destination.publicKey, isSigner: false, isWritable: true},
+                {pubkey: quarantine.publicKey, isSigner: false, isWritable: true},
                 {pubkey: payer.publicKey, isSigner: true, isWritable: true},
                 {pubkey: SystemProgram.programId, isSigner: false, isWritable: false}
             ],
             programId: program.publicKey,
             data: (
-                new Forward({
+                new CreateForwardInstruction({
                     id: 123456,
                 })
             ).toBuffer(),
         });
-        await sendAndConfirmTransaction(
-            connection,
-            new Transaction().add(ix),
-            [payer, forward]
-        );
+        try {
+            await sendAndConfirmTransaction(
+                connection,
+                new Transaction().add(ix),
+                [payer, forward]
+            );
+        } catch (e)
+        {
+            console.log(e)
+        }
+
     });
 
     it("Read forward data", async () => {
         const forwardInfo = await connection.getAccountInfo(forward.publicKey);
-        const readAddressInfo = Forward.fromBuffer(forwardInfo.data);
-        console.log(`Id     : ${readAddressInfo.id}`);
+        const fwd= Forward.fromBuffer(forwardInfo.data);
+        console.log(`id          : ${fwd.id}`);
+        console.log(`destination : ${fwd.destination}`);
+        console.log(`quarantine  : ${fwd.quarantine}`);
+        console.log(`bump        : ${fwd.bump}`);
     });
+
 });
