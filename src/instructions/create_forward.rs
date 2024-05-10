@@ -1,5 +1,5 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use solana_program::{account_info::{AccountInfo, next_account_info}, entrypoint::ProgramResult, msg, pubkey::Pubkey, rent::Rent, system_instruction, system_program, sysvar::Sysvar};
+use solana_program::{account_info::{AccountInfo, next_account_info}, entrypoint::ProgramResult, msg, pubkey::Pubkey, rent::Rent, system_instruction, sysvar::Sysvar};
 use solana_program::program::invoke_signed;
 
 use crate::state::Forward;
@@ -7,6 +7,7 @@ use crate::state::Forward;
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct CreateForwardInstruction {
     id: u32,
+    bump: u8,
 }
 
 pub fn create_forward(
@@ -40,9 +41,6 @@ pub fn create_forward(
 
     let rent = Rent::get()?.minimum_balance(Forward::LEN);
 
-    let (_forward_key, bump) = Pubkey::find_program_address(
-        &[ Forward::FORWARD_SEED.as_ref(), destination_account.key.as_ref(), instr.id.to_le_bytes().as_ref()], program_id);
-    //
     invoke_signed(
         &system_instruction::create_account(
             payer.key,
@@ -58,14 +56,14 @@ pub fn create_forward(
             destination_account.clone(),
             quarantine_account.clone()
         ],
-        &[&[ Forward::FORWARD_SEED.as_ref(), destination_account.key.as_ref(), instr.id.to_le_bytes().as_ref(), &[bump]]]
+        &[&[ Forward::FORWARD_SEED.as_ref(), destination_account.key.as_ref(), instr.id.to_le_bytes().as_ref(), &[instr.bump]]]
     )?;
 
     let forward = Forward{
         id: instr.id,
         destination: destination_account.key.to_owned(),
         quarantine: quarantine_account.key.to_owned(),
-        bump,
+        bump: instr.bump,
     };
 
     forward.serialize(&mut &mut forward_account.data.borrow_mut()[..])?;

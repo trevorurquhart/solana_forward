@@ -1,6 +1,6 @@
 import {
     Connection,
-    Keypair,
+    Keypair, PublicKey,
     sendAndConfirmTransaction, SystemProgram,
     Transaction,
     TransactionInstruction,
@@ -15,14 +15,12 @@ function createKeypairFromFile(path: string): Keypair {
     )
 }
 
-describe("hello-solana", () => {
+describe("forward tests", () => {
 
     // Loading these from local files for development
     const connection = new Connection(`http://localhost:8899`, 'confirmed');
     const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
     const program = createKeypairFromFile('./target/deploy/solana_forward-keypair.json');
-
-
 
     class Assignable {
         constructor(properties) {
@@ -56,7 +54,7 @@ describe("hello-solana", () => {
         toBuffer() { return Buffer.from(borsh.serialize(CreateForwardInstructionSchema, this)) }
 
         static fromBuffer(buffer: Buffer) {
-            return borsh.deserialize(CreateForwardInstructionSchema, Forward, buffer);
+            return borsh.deserialize(CreateForwardInstructionSchema, CreateForwardInstruction, buffer);
         };
     }
 
@@ -65,28 +63,39 @@ describe("hello-solana", () => {
             kind: 'struct',
             fields: [
                 ['id', 'u32'],
+                ['bump', 'u8'],
             ],
         }]
     ]);
 
     const destination = Keypair.generate();
     const quarantine = Keypair.generate();
-    const forward = Keypair.generate();
+
+    function derivePageVisitsPda(destPubkey: PublicKey, id: String) {
+        return PublicKey.findProgramAddressSync(
+            [Buffer.from("forward"), destPubkey.toBuffer(), Buffer.from(id)],
+            program.publicKey,
+        )
+    }
 
     it("Initialise forward!", async () => {
 
+        const forwardId = "123456";
+        const [forwardPda, forwardBump] = derivePageVisitsPda(destination.publicKey, forwardId);
+
         let ix = new TransactionInstruction({
             keys: [
-                {pubkey: forward.publicKey, isSigner: true, isWritable: true},
-                {pubkey: destination.publicKey, isSigner: false, isWritable: true},
-                {pubkey: quarantine.publicKey, isSigner: false, isWritable: true},
+                {pubkey: forwardPda, isSigner: false, isWritable: true},
+                {pubkey: destination.publicKey, isSigner: false, isWritable: false},
+                {pubkey: quarantine.publicKey, isSigner: false, isWritable: false},
                 {pubkey: payer.publicKey, isSigner: true, isWritable: true},
                 {pubkey: SystemProgram.programId, isSigner: false, isWritable: false}
             ],
             programId: program.publicKey,
             data: (
                 new CreateForwardInstruction({
-                    id: 123456,
+                    id: forwardId,
+                    bump: forwardBump
                 })
             ).toBuffer(),
         });
@@ -94,7 +103,7 @@ describe("hello-solana", () => {
             await sendAndConfirmTransaction(
                 connection,
                 new Transaction().add(ix),
-                [payer, forward]
+                [payer]
             );
         } catch (e)
         {
