@@ -27,8 +27,18 @@ pub fn create_forward(
     let payer = next_account_info(accounts_iter)?;
     let system_account = next_account_info(accounts_iter)?;
 
+    msg!("forward_account: {}", forward_account.key);
+
     assert!(payer.is_signer);
     assert!(payer.is_writable);
+
+    let destination_key = destination_account.key;
+    let quarantine_key = quarantine_account.key;
+
+    // let (forward_pda, forward_pda_bump) =
+    //     Pubkey::find_program_address(&[Forward::FORWARD_SEED.as_ref(), destination_key.as_ref(), instr.id.to_be_bytes().as_ref()], program_id);
+    //
+    // msg!("forward_pda: {}, forward_pda_bump: {}", forward_pda, forward_pda_bump);
 
     // assert!(forward_account.is_signer);
     // assert!(forward_account.is_writable);
@@ -41,6 +51,8 @@ pub fn create_forward(
 
     let rent = Rent::get()?.minimum_balance(Forward::LEN);
     // destination_account.key.as_ref()
+
+
     invoke_signed(
         &system_instruction::create_account(
             payer.key,
@@ -53,16 +65,14 @@ pub fn create_forward(
             payer.clone(),
             forward_account.clone(),
             system_account.clone(),
-            destination_account.clone(),
-            quarantine_account.clone()
         ],
-        &[&[ Forward::FORWARD_SEED.as_ref(), instr.id.to_le_bytes().as_ref(), &[instr.bump]]]
+        &[&[ Forward::FORWARD_SEED.as_ref(), destination_key.as_ref(), instr.id.to_be_bytes().as_ref(), &[instr.bump]]]
     )?;
 
     let forward = Forward{
         id: instr.id,
-        destination: destination_account.key.to_owned(),
-        quarantine: quarantine_account.key.to_owned(),
+        destination: destination_key.to_owned(),
+        quarantine: quarantine_key.to_owned(),
         bump: instr.bump,
     };
 

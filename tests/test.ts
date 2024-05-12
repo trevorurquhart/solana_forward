@@ -68,7 +68,7 @@ describe("forward tests", () => {
         }]
     ]);
 
-    const conv = num => [
+    const toBeArray = num => [
         (num >> 24) & 255,
         (num >> 16) & 255,
         (num >> 8) & 255,
@@ -80,15 +80,17 @@ describe("forward tests", () => {
 
     function derivePageVisitsPda(destPubkey: PublicKey, id: Number) {
         return PublicKey.findProgramAddressSync(
-            [Buffer.from("forward"), destPubkey.toBuffer(), Buffer.from(conv(id))],
+            [Buffer.from("forward"), destPubkey.toBuffer(), Buffer.from(toBeArray(id))],
             program.publicKey,
         )
     }
 
+    const forwardId = 123456;
+    const [forwardPda, forwardBump] = derivePageVisitsPda(destination.publicKey, forwardId);
+
     it("Initialise forward!", async () => {
 
-        const forwardId = 123456;
-        const [forwardPda, forwardBump] = derivePageVisitsPda(destination.publicKey, forwardId);
+        console.log(`programId: ${program.publicKey}, forwardPda : ${forwardPda}, bump: ${forwardBump}`)
 
         let ix = new TransactionInstruction({
             keys: [
@@ -120,7 +122,7 @@ describe("forward tests", () => {
     });
 
     it("Read forward data", async () => {
-        const forwardInfo = await connection.getAccountInfo(forward.publicKey);
+        const forwardInfo = await connection.getAccountInfo(forwardPda);
         const fwd= Forward.fromBuffer(forwardInfo.data);
         console.log(`id          : ${fwd.id}`);
         console.log(`destination : ${fwd.destination}`);
