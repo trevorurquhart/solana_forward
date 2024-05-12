@@ -68,11 +68,11 @@ describe("forward tests", () => {
         }]
     ]);
 
-    const toBeArray = num => [
-        (num >> 24) & 255,
-        (num >> 16) & 255,
-        (num >> 8) & 255,
+    const toLeArray = num => [
         num & 255,
+        (num >> 8) & 255,
+        (num >> 16) & 255,
+        (num >> 24) & 255,
     ];
 
     const destination = Keypair.generate();
@@ -80,7 +80,7 @@ describe("forward tests", () => {
 
     function derivePageVisitsPda(destPubkey: PublicKey, id: Number) {
         return PublicKey.findProgramAddressSync(
-            [Buffer.from("forward"), destPubkey.toBuffer(), Buffer.from(toBeArray(id))],
+            [Buffer.from("forward"), destPubkey.toBuffer(), Buffer.from(toLeArray(id))],
             program.publicKey,
         )
     }

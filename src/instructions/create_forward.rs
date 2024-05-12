@@ -66,7 +66,7 @@ pub fn create_forward(
             forward_account.clone(),
             system_account.clone(),
         ],
-        &[&[ Forward::FORWARD_SEED.as_ref(), destination_key.as_ref(), instr.id.to_be_bytes().as_ref(), &[instr.bump]]]
+        &[&[ Forward::FORWARD_SEED.as_ref(), destination_key.as_ref(), instr.id.to_le_bytes().as_ref(), &[instr.bump]]]
     )?;
 
     let forward = Forward{
