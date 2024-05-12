@@ -18,7 +18,7 @@ pub fn create_forward(
 
     msg!("create forward");
     let instr = CreateForwardInstruction::deserialize(&mut &instruction_data[..])?;
-    msg!("instr");
+    msg!("instr: id: {}, bump: {}", instr.id, instr.bump);
 
     let accounts_iter = &mut accounts.iter();
     let forward_account = next_account_info(accounts_iter)?;
@@ -40,7 +40,7 @@ pub fn create_forward(
     // assert!(!quarantine_account.is_signer);
 
     let rent = Rent::get()?.minimum_balance(Forward::LEN);
-
+    // destination_account.key.as_ref()
     invoke_signed(
         &system_instruction::create_account(
             payer.key,
@@ -56,7 +56,7 @@ pub fn create_forward(
             destination_account.clone(),
             quarantine_account.clone()
         ],
-        &[&[ Forward::FORWARD_SEED.as_ref(), destination_account.key.as_ref(), instr.id.to_le_bytes().as_ref(), &[instr.bump]]]
+        &[&[ Forward::FORWARD_SEED.as_ref(), instr.id.to_le_bytes().as_ref(), &[instr.bump]]]
     )?;
 
     let forward = Forward{

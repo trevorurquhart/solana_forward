@@ -68,19 +68,26 @@ describe("forward tests", () => {
         }]
     ]);
 
+    const conv = num => [
+        (num >> 24) & 255,
+        (num >> 16) & 255,
+        (num >> 8) & 255,
+        num & 255,
+    ];
+
     const destination = Keypair.generate();
     const quarantine = Keypair.generate();
 
-    function derivePageVisitsPda(destPubkey: PublicKey, id: String) {
+    function derivePageVisitsPda(destPubkey: PublicKey, id: Number) {
         return PublicKey.findProgramAddressSync(
-            [Buffer.from("forward"), destPubkey.toBuffer(), Buffer.from(id)],
+            [Buffer.from("forward"), destPubkey.toBuffer(), Buffer.from(conv(id))],
             program.publicKey,
         )
     }
 
     it("Initialise forward!", async () => {
 
-        const forwardId = "123456";
+        const forwardId = 123456;
         const [forwardPda, forwardBump] = derivePageVisitsPda(destination.publicKey, forwardId);
 
         let ix = new TransactionInstruction({
