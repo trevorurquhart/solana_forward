@@ -1,16 +1,22 @@
-use solana_program::{
-    account_info::AccountInfo, entrypoint::ProgramResult,
-    pubkey::Pubkey,
-};
+use borsh::{BorshDeserialize, BorshSerialize};
+use solana_program::{account_info::AccountInfo, entrypoint::ProgramResult, msg, pubkey::Pubkey};
 
-use crate::instructions;
+use crate::instructions::create_forward::{create_forward, CreateForwardInstruction};
+
+#[derive(BorshSerialize, BorshDeserialize)]
+pub enum ForwardInstruction {
+    CreateForward(CreateForwardInstruction)
+}
 
 pub fn process_instruction(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
-
-    return instructions::create_forward::create_forward(program_id, accounts, instruction_data);
-    // Err(ProgramError::InvalidInstructionData)
+    msg!("Processing instruction");
+    let instruction = ForwardInstruction::try_from_slice(instruction_data)?;
+    msg!("Found instruction");
+    match instruction {
+        ForwardInstruction::CreateForward(args) => {create_forward(program_id, accounts, args)}
+    }
 }

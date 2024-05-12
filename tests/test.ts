@@ -50,6 +50,11 @@ describe("forward tests", () => {
         }]
     ]);
 
+    enum ForwardsInstructions {
+        CreateForward,
+    }
+
+
     class CreateForwardInstruction extends Assignable {
         toBuffer() { return Buffer.from(borsh.serialize(CreateForwardInstructionSchema, this)) }
 
@@ -62,6 +67,7 @@ describe("forward tests", () => {
         [ CreateForwardInstruction, {
             kind: 'struct',
             fields: [
+                ['instruction', 'u8'],
                 ['id', 'u32'],
                 ['bump', 'u8'],
             ],
@@ -103,6 +109,7 @@ describe("forward tests", () => {
             programId: program.publicKey,
             data: (
                 new CreateForwardInstruction({
+                    instruction: ForwardsInstructions.CreateForward,
                     id: forwardId,
                     bump: forwardBump
                 })

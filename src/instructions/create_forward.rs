@@ -13,11 +13,9 @@ pub struct CreateForwardInstruction {
 pub fn create_forward(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    instruction_data: &[u8]
+    instr: CreateForwardInstruction
 ) -> ProgramResult {
 
-    msg!("create forward");
-    let instr = CreateForwardInstruction::deserialize(&mut &instruction_data[..])?;
     msg!("instr: id: {}, bump: {}", instr.id, instr.bump);
 
     let accounts_iter = &mut accounts.iter();
