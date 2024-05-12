@@ -13,9 +13,9 @@ pub fn process_instruction(
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
-    msg!("Processing instruction");
+
     let instruction = ForwardInstruction::try_from_slice(instruction_data)?;
-    msg!("Found instruction");
+
     match instruction {
         ForwardInstruction::CreateForward(args) => {create_forward(program_id, accounts, args)}
     }
