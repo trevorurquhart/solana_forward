@@ -6,15 +6,16 @@ export async function deposit(
     to,
     depositAmount) {
 
-    const instructions = new web3.Transaction().add(
+    const transaction = new web3.Transaction().add(
         web3.SystemProgram.transfer({
-            fromPubkey: from,
+            fromPubkey: from.publicKey,
             toPubkey: to,
             lamports: depositAmount
         }));
+
     return  await web3.sendAndConfirmTransaction(
         connection,
-        instructions,
+        transaction,
         [from]
     );
 }

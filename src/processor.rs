@@ -1,5 +1,5 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use solana_program::{account_info::AccountInfo, entrypoint::ProgramResult, msg, pubkey::Pubkey};
+use solana_program::{account_info::AccountInfo, entrypoint::ProgramResult, pubkey::Pubkey};
 
 use crate::instructions::create_forward::{create_forward, CreateForwardInstruction};
 use crate::instructions::forward_sol::forward_sol;

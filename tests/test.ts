@@ -141,8 +141,8 @@ describe("forward tests", () => {
 
     it("Should deposit to forward", async () => {
         await deposit(connection, payer, forwardPda, 10000);
-        let payerBalance = await connection.getBalance(forwardPda);
-        console.log()
+        let balance = await connection.getBalance(forwardPda);
+        console.log(`Forward balance: ${balance}`);
     });
 
 });
