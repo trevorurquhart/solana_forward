@@ -2,6 +2,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{account_info::AccountInfo, entrypoint::ProgramResult, msg, pubkey::Pubkey};
 
 use crate::instructions::create_forward::{create_forward, CreateForwardInstruction};
+use crate::instructions::forward_sol::forward_sol;
 
 #[derive(BorshSerialize, BorshDeserialize)]
 pub enum ForwardInstruction {
@@ -19,6 +20,6 @@ pub fn process_instruction(
 
     match instruction {
         ForwardInstruction::CreateForward(args) => {create_forward(program_id, accounts, args)}
-        ForwardInstruction::ForwardSol => {}
+        ForwardInstruction::ForwardSol => {forward_sol(accounts)}
     }
 }

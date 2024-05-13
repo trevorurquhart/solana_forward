@@ -12,13 +12,11 @@ pub fn forward_sol(
     let forward_account = next_account_info(accounts_iter)?;
     let destination_account = next_account_info(accounts_iter)?;
 
-    if (destination_account.key)
-
     let rent_balance = Rent::get()?.minimum_balance(forward_account.data_len());
     let amount = forward_account.get_lamports() - rent_balance;
-    if amount <= 0 {
-        return Err(ForwardError::InsufficientFunds.into());
-    }
+    // if amount <= 0 {
+    //     return Err(ForwardError::InsufficientFunds.into());
+    // }
 
     **forward_account.try_borrow_mut_lamports()? -= amount;
     **destination_account.try_borrow_mut_lamports()? += amount;

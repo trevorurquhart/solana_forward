@@ -7,6 +7,7 @@ import {
 } from '@solana/web3.js';
 import * as borsh from "borsh";
 import { Buffer } from "buffer";
+import {deposit} from "./fns/deposit";
 
 
 function createKeypairFromFile(path: string): Keypair {
@@ -135,6 +136,13 @@ describe("forward tests", () => {
         console.log(`destination : ${fwd.destination}`);
         console.log(`quarantine  : ${fwd.quarantine}`);
         console.log(`bump        : ${fwd.bump}`);
+    });
+
+
+    it("Should deposit to forward", async () => {
+        await deposit(connection, payer, forwardPda, 10000);
+        let payerBalance = await connection.getBalance(forwardPda);
+        console.log()
     });
 
 });
