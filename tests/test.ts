@@ -1,78 +1,46 @@
-import {
-    Connection,
-    Keypair, PublicKey,
-    sendAndConfirmTransaction, SystemProgram,
-    Transaction,
-    TransactionInstruction,
-} from '@solana/web3.js';
-import * as borsh from "borsh";
-import { Buffer } from "buffer";
+import {Connection, Keypair, LAMPORTS_PER_SOL, PublicKey,} from '@solana/web3.js';
 import {deposit} from "./fns/deposit";
-import {derivePageVisitsPda} from "./fns/derivePda";
+import {createForward, derivePageVisitsPda} from "./fns/forwardFns";
 import {createKeypairFromFile} from "./fns/createKeyPair";
-import {CreateForwardInstruction, Forward, ForwardsInstructions} from "./classes/classes";
+import {Forward} from "./classes/classes";
+import {beforeEach} from "mocha";
+import {expect} from "chai";
 
 describe("forward tests", () => {
 
-    // Loading these from local files for development
     const connection = new Connection(`http://localhost:8899`, 'confirmed');
     const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
     const program = createKeypairFromFile('./target/deploy/solana_forward-keypair.json');
-
-    const destination = Keypair.generate();
-    const quarantine = Keypair.generate();
-
     const forwardId = 123456;
-    const [forwardPda, forwardBump] = derivePageVisitsPda(destination.publicKey, forwardId, program.publicKey);
 
-    it("Initialise forward!", async () => {
+    let destination;
+    let quarantine;
+    let forwardPda;
+    let forwardBump;
 
-        console.log(`programId: ${program.publicKey}, forwardPda : ${forwardPda}, bump: ${forwardBump}`)
-
-        let ix = new TransactionInstruction({
-            keys: [
-                {pubkey: forwardPda, isSigner: false, isWritable: true},
-                {pubkey: destination.publicKey, isSigner: false, isWritable: false},
-                {pubkey: quarantine.publicKey, isSigner: false, isWritable: false},
-                {pubkey: payer.publicKey, isSigner: true, isWritable: true},
-                {pubkey: SystemProgram.programId, isSigner: false, isWritable: false}
-            ],
-            programId: program.publicKey,
-            data: (
-                new CreateForwardInstruction({
-                    instruction: ForwardsInstructions.CreateForward,
-                    id: forwardId,
-                    bump: forwardBump
-                })
-            ).toBuffer(),
-        });
-        try {
-            await sendAndConfirmTransaction(
-                connection,
-                new Transaction().add(ix),
-                [payer]
-            );
-        } catch (e)
-        {
-            console.log(e)
-        }
-
+    beforeEach("setup", async () => {
+        destination = Keypair.generate();
+        quarantine = Keypair.generate();
+        [forwardPda, forwardBump] = derivePageVisitsPda(destination.publicKey, forwardId, program.publicKey);
+        await createForward(forwardPda, destination, quarantine, payer, program, forwardId, forwardBump, connection);
     });
 
-    it("Read forward data", async () => {
+    it("Should initialise forward!", async () => {
         const forwardInfo = await connection.getAccountInfo(forwardPda);
         const fwd= Forward.fromBuffer(forwardInfo.data);
-        console.log(`id          : ${fwd.id}`);
-        console.log(`destination : ${fwd.destination}`);
-        console.log(`quarantine  : ${fwd.quarantine}`);
-        console.log(`bump        : ${fwd.bump}`);
+
+        expect(fwd.id).to.equal(forwardId);
+        expect(fwd.bump).to.equal(forwardBump);
+        expect(new PublicKey(fwd.destination)).to.deep.equal(destination.publicKey);
+        expect(new PublicKey(fwd.quarantine)).to.deep.equal(quarantine.publicKey);
     });
 
-
     it("Should deposit to forward", async () => {
-        await deposit(connection, payer, forwardPda, 10000);
-        let balance = await connection.getBalance(forwardPda);
-        console.log(`Forward balance: ${balance}`);
+        let balanceBefore = await connection.getBalance(forwardPda);
+        let depositAmount = LAMPORTS_PER_SOL/100;
+        await deposit(connection, payer, forwardPda, depositAmount);
+        let balanceAfter = await connection.getBalance(forwardPda);
+        expect(balanceAfter - balanceBefore).to.equal(depositAmount);
     });
 
 });

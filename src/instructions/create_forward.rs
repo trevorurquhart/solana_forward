@@ -13,9 +13,8 @@ pub struct CreateForwardInstruction {
 pub fn create_forward(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    instr: CreateForwardInstruction
+    instr: CreateForwardInstruction,
 ) -> ProgramResult {
-
     msg!("instr: id: {}, bump: {}", instr.id, instr.bump);
 
     let accounts_iter = &mut accounts.iter();
@@ -50,27 +49,26 @@ pub fn create_forward(
     let rent = Rent::get()?.minimum_balance(Forward::LEN);
     // destination_account.key.as_ref()
 
+    invoke_signed(&system_instruction::create_account(
+        payer.key,
+        forward_account.key,
+        rent,
+        Forward::LEN.try_into().unwrap(),
+        program_id,
+    ), &[
+        payer.clone(),
+        forward_account.clone(),
+        system_account.clone(),
+    ], &[&[
+        Forward::FORWARD_SEED.as_ref(),
+        destination_key.as_ref(),
+        instr.id.to_le_bytes().as_ref(),
+        &[instr.bump]]])?;
 
-    invoke_signed(
-        &system_instruction::create_account(
-            payer.key,
-            forward_account.key,
-            rent,
-            Forward::LEN.try_into().unwrap(),
-            program_id,
-        ),
-        &[
-            payer.clone(),
-            forward_account.clone(),
-            system_account.clone(),
-        ],
-        &[&[ Forward::FORWARD_SEED.as_ref(), destination_key.as_ref(), instr.id.to_le_bytes().as_ref(), &[instr.bump]]]
-    )?;
-
-    let forward = Forward{
+    let forward = Forward {
         id: instr.id,
-        destination: destination_key.to_owned(),
-        quarantine: quarantine_key.to_owned(),
+        destination: destination_key.clone(),
+        quarantine: quarantine_key.clone(),
         bump: instr.bump,
     };
 
