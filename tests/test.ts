@@ -8,13 +8,9 @@ import {
 import * as borsh from "borsh";
 import { Buffer } from "buffer";
 import {deposit} from "./fns/deposit";
-
-
-function createKeypairFromFile(path: string): Keypair {
-    return Keypair.fromSecretKey(
-        Buffer.from(JSON.parse(require('fs').readFileSync(path, "utf-8")))
-    )
-}
+import {derivePageVisitsPda} from "./fns/derivePda";
+import {createKeypairFromFile} from "./fns/createKeyPair";
+import {CreateForwardInstruction, Forward, ForwardsInstructions} from "./classes/classes";
 
 describe("forward tests", () => {
 
@@ -23,77 +19,11 @@ describe("forward tests", () => {
     const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
     const program = createKeypairFromFile('./target/deploy/solana_forward-keypair.json');
 
-    class Assignable {
-        constructor(properties) {
-            Object.keys(properties).map((key) => {
-                return (this[key] = properties[key]);
-            });
-        };
-    }
-
-    class Forward extends Assignable {
-        toBuffer() { return Buffer.from(borsh.serialize(ForwardSchema, this)) }
-
-        static fromBuffer(buffer: Buffer) {
-            return borsh.deserialize(ForwardSchema, Forward, buffer);
-        };
-    }
-
-    const ForwardSchema = new Map([
-        [ Forward, {
-            kind: 'struct',
-            fields: [
-                ['id', 'u32'],
-                ['destination', [32]],
-                ['quarantine', [32]],
-                ['bump', 'u8']
-            ],
-        }]
-    ]);
-
-    enum ForwardsInstructions {
-        CreateForward,
-    }
-
-
-    class CreateForwardInstruction extends Assignable {
-        toBuffer() { return Buffer.from(borsh.serialize(CreateForwardInstructionSchema, this)) }
-
-        static fromBuffer(buffer: Buffer) {
-            return borsh.deserialize(CreateForwardInstructionSchema, CreateForwardInstruction, buffer);
-        };
-    }
-
-    const CreateForwardInstructionSchema = new Map([
-        [ CreateForwardInstruction, {
-            kind: 'struct',
-            fields: [
-                ['instruction', 'u8'],
-                ['id', 'u32'],
-                ['bump', 'u8'],
-            ],
-        }]
-    ]);
-
-    const toLeArray = num => [
-        num & 255,
-        (num >> 8) & 255,
-        (num >> 16) & 255,
-        (num >> 24) & 255,
-    ];
-
     const destination = Keypair.generate();
     const quarantine = Keypair.generate();
 
-    function derivePageVisitsPda(destPubkey: PublicKey, id: Number) {
-        return PublicKey.findProgramAddressSync(
-            [Buffer.from("forward"), destPubkey.toBuffer(), Buffer.from(toLeArray(id))],
-            program.publicKey,
-        )
-    }
-
     const forwardId = 123456;
-    const [forwardPda, forwardBump] = derivePageVisitsPda(destination.publicKey, forwardId);
+    const [forwardPda, forwardBump] = derivePageVisitsPda(destination.publicKey, forwardId, program.publicKey);
 
     it("Initialise forward!", async () => {
 
