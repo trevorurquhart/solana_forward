@@ -10,7 +10,7 @@ pub struct CreateForwardInstruction {
     bump: u8,
 }
 
-pub fn create_forward(
+pub fn create(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
     instr: CreateForwardInstruction,

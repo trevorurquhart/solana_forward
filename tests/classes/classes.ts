@@ -3,8 +3,8 @@ import * as borsh from "borsh";
 
 export enum ForwardsInstructions {
     CreateForward,
+    Execute,
 }
-
 class Assignable {
     constructor(properties) {
         Object.keys(properties).map((key) => {
@@ -51,3 +51,21 @@ const CreateForwardInstructionSchema = new Map([
         ],
     }]
 ]);
+
+export class ExecuteForwardInstruction extends Assignable {
+    toBuffer() { return Buffer.from(borsh.serialize(ExecuteForwardInstructionSchema, this)) }
+
+    static fromBuffer(buffer: Buffer) {
+        return borsh.deserialize(ExecuteForwardInstructionSchema, CreateForwardInstruction, buffer);
+    };
+}
+
+const ExecuteForwardInstructionSchema = new Map([
+    [ ExecuteForwardInstruction, {
+        kind: 'struct',
+        fields: [
+            ['instruction', 'u8'],
+        ],
+    }]
+]);
+

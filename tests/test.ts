@@ -1,6 +1,6 @@
 import {Connection, Keypair, LAMPORTS_PER_SOL, PublicKey,} from '@solana/web3.js';
 import {deposit} from "./fns/deposit";
-import {createForward, derivePageVisitsPda} from "./fns/forwardFns";
+import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {Forward} from "./classes/classes";
 import {beforeEach} from "mocha";
@@ -21,11 +21,11 @@ describe("forward tests", () => {
     beforeEach("setup", async () => {
         destination = Keypair.generate();
         quarantine = Keypair.generate();
-        [forwardPda, forwardBump] = derivePageVisitsPda(destination.publicKey, forwardId, program.publicKey);
+        [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
         await createForward(forwardPda, destination, quarantine, payer, program, forwardId, forwardBump, connection);
     });
 
-    it("Should initialise forward!", async () => {
+    it("Should initialise forward", async () => {
         const forwardInfo = await connection.getAccountInfo(forwardPda);
         const fwd= Forward.fromBuffer(forwardInfo.data);
 
@@ -36,11 +36,20 @@ describe("forward tests", () => {
     });
 
     it("Should deposit to forward", async () => {
-        let balanceBefore = await connection.getBalance(forwardPda);
         let depositAmount = LAMPORTS_PER_SOL/100;
+        let balanceBefore = await connection.getBalance(forwardPda);
         await deposit(connection, payer, forwardPda, depositAmount);
         let balanceAfter = await connection.getBalance(forwardPda);
         expect(balanceAfter - balanceBefore).to.equal(depositAmount);
+    });
+
+    it("Should transfer sol when executed", async () => {
+        let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
+        let forwardAmount = LAMPORTS_PER_SOL/100;
+        await deposit(connection, payer, forwardPda, forwardAmount);
+        await execute(forwardPda, destination, payer, program, connection)
+        let destinationBalanceAfter = await connection.getBalance(destination.publicKey);
+        expect(destinationBalanceAfter - destinationBalanceBefore).to.equal(forwardAmount);
     });
 
 });

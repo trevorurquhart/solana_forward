@@ -3,7 +3,7 @@ use solana_program::entrypoint::ProgramResult;
 use solana_program::rent::Rent;
 use solana_program::sysvar::Sysvar;
 
-pub fn forward_sol(
+pub fn execute(
     accounts: &[AccountInfo],
 ) -> ProgramResult {
 
