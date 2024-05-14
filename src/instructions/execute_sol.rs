@@ -1,9 +1,7 @@
-use borsh::BorshDeserialize;
 use solana_program::account_info::{AccountInfo, next_account_info};
 use solana_program::entrypoint::ProgramResult;
 use solana_program::rent::Rent;
 use solana_program::sysvar::Sysvar;
-use crate::state::Forward;
 
 pub fn execute_sol(
     accounts: &[AccountInfo],

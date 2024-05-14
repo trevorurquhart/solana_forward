@@ -1,6 +1,6 @@
 import {Connection, Keypair, LAMPORTS_PER_SOL, PublicKey,} from '@solana/web3.js';
 import {deposit} from "./fns/deposit";
-import {createForward, deriveForwardPda, executeSol} from "./fns/forwardFns";
+import {createForward, deriveForwardPda, executeSol, executeToken} from "./fns/forwardFns";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {Forward} from "./classes/classes";
 import {beforeEach} from "mocha";
@@ -61,10 +61,13 @@ describe("forward tests", () => {
     });
 
     it("Should transfer tokens when executed", async () =>{
-        let tokenAmount = 1000;
-        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
-        const info = await connection.getTokenAccountBalance(forwardAta);
-        expect(info.value.uiAmount).to.equal(tokenAmount);
+        let forwardAmount = 1000;
+        let destinationInitialBalance = 5000;
+        let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, destinationInitialBalance, destination.publicKey);
+        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
+        await executeToken(forwardPda, forwardAta, destinationAta, payer, program, connection);
+        const info = await connection.getTokenAccountBalance(destinationAta);
+        expect(info.value.uiAmount).to.equal(forwardAmount + destinationInitialBalance);
     });
 
 
