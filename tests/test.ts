@@ -1,26 +1,27 @@
 import {Connection, Keypair, LAMPORTS_PER_SOL, PublicKey,} from '@solana/web3.js';
 import {deposit} from "./fns/deposit";
-import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
+import {createForward, deriveForwardPda, executeSol} from "./fns/forwardFns";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {Forward} from "./classes/classes";
 import {beforeEach} from "mocha";
 import {expect} from "chai";
+import {createMint} from "@solana/spl-token";
+import {createAndFundAta} from "./fns/createToken";
 
 describe("forward tests", () => {
 
     const connection = new Connection(`http://localhost:8899`, 'confirmed');
     const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
     const program = createKeypairFromFile('./target/deploy/solana_forward-keypair.json');
+    const mintAuthority = Keypair.generate();
     const forwardId = 123456;
 
-    let destination;
-    let quarantine;
-    let forwardPda;
-    let forwardBump;
+    let destination, quarantine, mint, forwardPda, forwardBump;
 
     beforeEach("setup", async () => {
         destination = Keypair.generate();
         quarantine = Keypair.generate();
+        mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
         await createForward(forwardPda, destination, quarantine, payer, program, forwardId, forwardBump, connection);
     });
@@ -47,9 +48,24 @@ describe("forward tests", () => {
         let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
         let forwardAmount = LAMPORTS_PER_SOL/100;
         await deposit(connection, payer, forwardPda, forwardAmount);
-        await execute(forwardPda, destination, payer, program, connection)
+        await executeSol(forwardPda, destination, payer, program, connection)
         let destinationBalanceAfter = await connection.getBalance(destination.publicKey);
         expect(destinationBalanceAfter - destinationBalanceBefore).to.equal(forwardAmount);
     });
+
+    it("Should deposit tokens to forward", async () =>{
+        let tokenAmount = 1000;
+        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
+        const info = await connection.getTokenAccountBalance(forwardAta);
+        expect(info.value.uiAmount).to.equal(tokenAmount);
+    });
+
+    it("Should transfer tokens when executed", async () =>{
+        let tokenAmount = 1000;
+        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
+        const info = await connection.getTokenAccountBalance(forwardAta);
+        expect(info.value.uiAmount).to.equal(tokenAmount);
+    });
+
 
 });

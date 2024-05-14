@@ -1,9 +1,9 @@
 import {Buffer} from "buffer";
 import * as borsh from "borsh";
 
-export enum ForwardsInstructions {
+export enum ForwardInstructions {
     CreateForward,
-    Execute,
+    ExecuteSol,
 }
 class Assignable {
     constructor(properties) {
@@ -52,7 +52,7 @@ const CreateForwardInstructionSchema = new Map([
     }]
 ]);
 
-export class ExecuteForwardInstruction extends Assignable {
+export class ExecuteForwardSolInstruction extends Assignable {
     toBuffer() { return Buffer.from(borsh.serialize(ExecuteForwardInstructionSchema, this)) }
 
     static fromBuffer(buffer: Buffer) {
@@ -61,7 +61,7 @@ export class ExecuteForwardInstruction extends Assignable {
 }
 
 const ExecuteForwardInstructionSchema = new Map([
-    [ ExecuteForwardInstruction, {
+    [ ExecuteForwardSolInstruction, {
         kind: 'struct',
         fields: [
             ['instruction', 'u8'],

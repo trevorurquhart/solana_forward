@@ -7,7 +7,7 @@ import {
 } from "@solana/web3.js";
 import {Buffer} from "buffer";
 import {toLeArray} from "./toLeArray";
-import {CreateForwardInstruction, ExecuteForwardInstruction, ForwardsInstructions} from "../classes/classes";
+import {CreateForwardInstruction, ExecuteForwardSolInstruction, ForwardInstructions} from "../classes/classes";
 
 export function deriveForwardPda(destPubkey: PublicKey, id: Number, programId) {
     return PublicKey.findProgramAddressSync(
@@ -29,7 +29,7 @@ export async function createForward(forwardPda, destination, quarantine, payer, 
         programId: program.publicKey,
         data: (
             new CreateForwardInstruction({
-                instruction: ForwardsInstructions.CreateForward,
+                instruction: ForwardInstructions.CreateForward,
                 id: forwardId,
                 bump: forwardBump
             })
@@ -46,7 +46,7 @@ export async function createForward(forwardPda, destination, quarantine, payer, 
     }
 }
 
-export async function execute(forwardPda, destination, payer, program, connection) {
+export async function executeSol(forwardPda, destination, payer, program, connection) {
 
     let ix = new TransactionInstruction({
         keys: [
@@ -57,8 +57,8 @@ export async function execute(forwardPda, destination, payer, program, connectio
         ],
         programId: program.publicKey,
         data: (
-            new ExecuteForwardInstruction({
-                instruction: ForwardsInstructions.Execute,
+            new ExecuteForwardSolInstruction({
+                instruction: ForwardInstructions.ExecuteSol,
             })
         ).toBuffer(),
     });
