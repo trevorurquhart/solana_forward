@@ -1,12 +1,12 @@
 use borsh::BorshDeserialize;
 use solana_program::account_info::{AccountInfo, next_account_info};
 use solana_program::entrypoint::ProgramResult;
-use solana_program::msg;
 use solana_program::program::invoke_signed;
 use solana_program::program_pack::Pack;
-use crate::state::Forward;
 use spl_token::instruction::transfer;
 use spl_token::state::Account;
+
+use crate::state::Forward;
 
 pub fn execute_token(
     accounts: &[AccountInfo],
@@ -32,18 +32,17 @@ pub fn execute_token(
     // if amount <= 0 {
     //     return Err(ForwardError::InsufficientFunds.into());
     // }
-    msg!("Creating transfer instruction");
-    let transfer_instruction = transfer(
-        token_program.key,
-        forward_ata_account.key,
-        destination_ata_account.key,
-        forward_account.key,
-        &[forward_account.key],
-        token_balance,
-    );
-    msg!("Created transfer instruction");
+    // msg!("Creating transfer instruction");
+    // msg!("Created transfer instruction");
     invoke_signed(
-        &transfer_instruction?,
+        &transfer(
+            token_program.key,
+            forward_ata_account.key,
+            destination_ata_account.key,
+            forward_account.key,
+            &[forward_account.key],
+            token_balance,
+        )?,
         &[
             forward_ata_account.clone(),
             destination_ata_account.clone(),
