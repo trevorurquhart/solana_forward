@@ -1,6 +1,7 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::account_info::{AccountInfo, next_account_info};
 use solana_program::entrypoint::ProgramResult;
+use solana_program::msg;
 use solana_program::program::invoke_signed;
 use solana_program::program_pack::Pack;
 use solana_program::pubkey::Pubkey;
@@ -24,6 +25,9 @@ pub fn execute_token(
     let forward_ata_account = next_account_info(accounts_iter)?;
     let destination_ata_account = next_account_info(accounts_iter)?;
     // let token_program = next_account_info(accounts_iter)?;
+
+    msg!("Executing token");
+    msg!(&instruction.token_program.to_string());
 
     let forward = Forward::try_from_slice(&forward_account.try_borrow_mut_data()?)?;
 
