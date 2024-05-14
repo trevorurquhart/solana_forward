@@ -7,7 +7,12 @@ import {
 } from "@solana/web3.js";
 import {Buffer} from "buffer";
 import {toLeArray} from "./toLeArray";
-import {CreateForwardInstruction, ExecuteForwardInstruction, ForwardInstructions} from "../classes/classes";
+import {
+    CreateForwardInstruction,
+    ExecuteForwardInstruction,
+    ExecuteForwardTokenInstruction,
+    ForwardInstructions
+} from "../classes/classes";
 import {TOKEN_PROGRAM_ID} from "@solana/spl-token";
 
 export function deriveForwardPda(destPubkey: PublicKey, id: Number, programId) {
@@ -80,13 +85,14 @@ export async function executeToken(forwardPda, forwardAta, destinationAta, payer
             {pubkey: forwardPda, isSigner: false, isWritable: true},
             {pubkey: forwardAta, isSigner: false, isWritable: true},
             {pubkey: destinationAta, isSigner: false, isWritable: true},
-            {pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false},
+            // {pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false},
             {pubkey: payer.publicKey, isSigner: true, isWritable: true},
         ],
         programId: program.publicKey,
         data: (
-            new ExecuteForwardInstruction({
+            new ExecuteForwardTokenInstruction({
                 instruction: ForwardInstructions.ExecuteToken,
+                tokenProgram: TOKEN_PROGRAM_ID
             })
         ).toBuffer(),
     });

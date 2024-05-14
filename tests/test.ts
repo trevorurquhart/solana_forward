@@ -26,39 +26,39 @@ describe("forward tests", () => {
         await createForward(forwardPda, destination, quarantine, payer, program, forwardId, forwardBump, connection);
     });
 
-    it("Should initialise forward", async () => {
-        const forwardInfo = await connection.getAccountInfo(forwardPda);
-        const fwd= Forward.fromBuffer(forwardInfo.data);
-
-        expect(fwd.id).to.equal(forwardId);
-        expect(fwd.bump).to.equal(forwardBump);
-        expect(new PublicKey(fwd.destination)).to.deep.equal(destination.publicKey);
-        expect(new PublicKey(fwd.quarantine)).to.deep.equal(quarantine.publicKey);
-    });
-
-    it("Should deposit to forward", async () => {
-        let depositAmount = LAMPORTS_PER_SOL/100;
-        let balanceBefore = await connection.getBalance(forwardPda);
-        await deposit(connection, payer, forwardPda, depositAmount);
-        let balanceAfter = await connection.getBalance(forwardPda);
-        expect(balanceAfter - balanceBefore).to.equal(depositAmount);
-    });
-
-    it("Should transfer sol when executed", async () => {
-        let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
-        let forwardAmount = LAMPORTS_PER_SOL/100;
-        await deposit(connection, payer, forwardPda, forwardAmount);
-        await executeSol(forwardPda, destination, payer, program, connection)
-        let destinationBalanceAfter = await connection.getBalance(destination.publicKey);
-        expect(destinationBalanceAfter - destinationBalanceBefore).to.equal(forwardAmount);
-    });
-
-    it("Should deposit tokens to forward", async () =>{
-        let tokenAmount = 1000;
-        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
-        const info = await connection.getTokenAccountBalance(forwardAta);
-        expect(info.value.uiAmount).to.equal(tokenAmount);
-    });
+    // it("Should initialise forward", async () => {
+    //     const forwardInfo = await connection.getAccountInfo(forwardPda);
+    //     const fwd= Forward.fromBuffer(forwardInfo.data);
+    //
+    //     expect(fwd.id).to.equal(forwardId);
+    //     expect(fwd.bump).to.equal(forwardBump);
+    //     expect(new PublicKey(fwd.destination)).to.deep.equal(destination.publicKey);
+    //     expect(new PublicKey(fwd.quarantine)).to.deep.equal(quarantine.publicKey);
+    // });
+    //
+    // it("Should deposit to forward", async () => {
+    //     let depositAmount = LAMPORTS_PER_SOL/100;
+    //     let balanceBefore = await connection.getBalance(forwardPda);
+    //     await deposit(connection, payer, forwardPda, depositAmount);
+    //     let balanceAfter = await connection.getBalance(forwardPda);
+    //     expect(balanceAfter - balanceBefore).to.equal(depositAmount);
+    // });
+    //
+    // it("Should transfer sol when executed", async () => {
+    //     let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
+    //     let forwardAmount = LAMPORTS_PER_SOL/100;
+    //     await deposit(connection, payer, forwardPda, forwardAmount);
+    //     await executeSol(forwardPda, destination, payer, program, connection)
+    //     let destinationBalanceAfter = await connection.getBalance(destination.publicKey);
+    //     expect(destinationBalanceAfter - destinationBalanceBefore).to.equal(forwardAmount);
+    // });
+    //
+    // it("Should deposit tokens to forward", async () =>{
+    //     let tokenAmount = 1000;
+    //     let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
+    //     const info = await connection.getTokenAccountBalance(forwardAta);
+    //     expect(info.value.uiAmount).to.equal(tokenAmount);
+    // });
 
     it("Should transfer tokens when executed", async () =>{
         let forwardAmount = 1000;

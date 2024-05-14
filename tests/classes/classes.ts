@@ -57,7 +57,7 @@ export class ExecuteForwardInstruction extends Assignable {
     toBuffer() { return Buffer.from(borsh.serialize(ExecuteForwardInstructionSchema, this)) }
 
     static fromBuffer(buffer: Buffer) {
-        return borsh.deserialize(ExecuteForwardInstructionSchema, CreateForwardInstruction, buffer);
+        return borsh.deserialize(ExecuteForwardInstructionSchema, ExecuteForwardTokenInstruction, buffer);
     };
 }
 
@@ -66,6 +66,24 @@ const ExecuteForwardInstructionSchema = new Map([
         kind: 'struct',
         fields: [
             ['instruction', 'u8'],
+        ],
+    }]
+]);
+
+export class ExecuteForwardTokenInstruction extends Assignable {
+    toBuffer() { return Buffer.from(borsh.serialize(ExecuteForwardTokenInstructionSchema, this)) }
+
+    static fromBuffer(buffer: Buffer) {
+        return borsh.deserialize(ExecuteForwardTokenInstructionSchema, ExecuteForwardTokenInstruction, buffer);
+    };
+}
+
+const ExecuteForwardTokenInstructionSchema = new Map([
+    [ ExecuteForwardTokenInstruction, {
+        kind: 'struct',
+        fields: [
+            ['instruction', 'u8'],
+            ['tokenProgram', [32]],
         ],
     }]
 ]);
