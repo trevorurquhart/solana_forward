@@ -54,7 +54,6 @@ export async function executeSol(forwardPda, destination, payer, program, connec
         keys: [
             {pubkey: forwardPda, isSigner: false, isWritable: true},
             {pubkey: destination.publicKey, isSigner: false, isWritable: true},
-            {pubkey: payer.publicKey, isSigner: true, isWritable: true},
         ],
         programId: program.publicKey,
         data: (
