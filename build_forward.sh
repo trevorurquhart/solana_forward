@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build and deploye the program.
+# Build and deploy the program.
 
 cargo build-bpf
 solana program deploy ./target/deploy/solana_forward.so

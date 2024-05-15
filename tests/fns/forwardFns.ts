@@ -86,13 +86,11 @@ export async function executeToken(forwardPda, forwardAta, destinationAta, payer
             {pubkey: forwardAta, isSigner: false, isWritable: true},
             {pubkey: destinationAta, isSigner: false, isWritable: true},
             {pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false},
-            {pubkey: payer.publicKey, isSigner: true, isWritable: true},
         ],
         programId: program.publicKey,
         data: (
             new ExecuteForwardTokenInstruction({
                 instruction: ForwardInstructions.ExecuteToken,
-                tokenProgram: TOKEN_PROGRAM_ID.toBytes()
             })
         ).toBuffer(),
     });

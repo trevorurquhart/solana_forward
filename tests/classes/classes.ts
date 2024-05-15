@@ -82,8 +82,7 @@ const ExecuteForwardTokenInstructionSchema = new Map([
     [ ExecuteForwardTokenInstruction, {
         kind: 'struct',
         fields: [
-            ['instruction', 'u8'],
-            ['tokenProgram', [32]],
+            ['instruction', 'u8']
         ],
     }]
 ]);
