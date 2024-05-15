@@ -1,13 +1,14 @@
-// use {
-//     num_derive::FromPrimitive
-//     ,
-//     thiserror::Error,
-// };
-//
-// #[derive(Clone, Debug, Eq, Error, FromPrimitive, PartialEq)]
-// pub enum ForwardError {
-//     // 0
-//     /// Associated token account owner does not match address derivation
-//     #[error("Associated token account owner does not match address derivation")]
-//     InvalidOwner,
-// }
+use solana_program::{program_error::ProgramError};
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum ForwardError {
+    #[error("Invalid destination")]
+    InvalidDestination,
+}
+
+impl From<ForwardError> for ProgramError {
+    fn from(e: ForwardError) -> Self {
+       ProgramError::Custom(e as u32)
+   }
+}

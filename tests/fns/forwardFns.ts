@@ -41,15 +41,11 @@ export async function createForward(forwardPda, destination, quarantine, payer, 
             })
         ).toBuffer(),
     });
-    try {
-        await sendAndConfirmTransaction(
-            connection,
-            new Transaction().add(ix),
-            [payer]
-        );
-    } catch (e) {
-        console.log(e)
-    }
+    await sendAndConfirmTransaction(
+        connection,
+        new Transaction().add(ix),
+        [payer]
+    );
 }
 
 export async function executeSol(forwardPda, destination, payer, program, connection) {
@@ -67,15 +63,11 @@ export async function executeSol(forwardPda, destination, payer, program, connec
             })
         ).toBuffer(),
     });
-    try {
-        await sendAndConfirmTransaction(
-            connection,
-            new Transaction().add(ix),
-            [payer]
-        );
-    } catch (e) {
-        console.log(e)
-    }
+    await sendAndConfirmTransaction(
+        connection,
+        new Transaction().add(ix),
+        [payer]
+    );
 }
 
 export async function executeToken(forwardPda, forwardAta, destinationAta, payer, program, connection) {
@@ -94,13 +86,10 @@ export async function executeToken(forwardPda, forwardAta, destinationAta, payer
             })
         ).toBuffer(),
     });
-    try {
-        await sendAndConfirmTransaction(
-            connection,
-            new Transaction().add(ix),
-            [payer]
-        );
-    } catch (e) {
-        console.log(e)
-    }
+    await sendAndConfirmTransaction(
+        connection,
+        new Transaction().add(ix),
+        [payer]
+    );
+
 }
