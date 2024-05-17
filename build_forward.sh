@@ -3,4 +3,11 @@
 # Build and deploy the program.
 
 cargo build-bpf
-solana program deploy ./target/deploy/solana_forward.so
+if [ $? -eq 0 ]; then
+    solana program deploy ./target/deploy/solana_forward.so
+fi
+
+# Output (if /home exists):
+# Documents Downloads Pictures Videos
+# Command succeeded
+

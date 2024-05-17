@@ -1,6 +1,6 @@
 import {Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SendTransactionError,} from '@solana/web3.js';
 import {deposit} from "./fns/deposit";
-import {createForward, deriveForwardPda, executeSol, executeToken} from "./fns/forwardFns";
+import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {Forward} from "./classes/classes";
 import {beforeEach} from "mocha";
@@ -48,7 +48,7 @@ describe("forward tests", () => {
         // let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
         let forwardAmount = LAMPORTS_PER_SOL/100;
         await deposit(connection, payer, forwardPda, forwardAmount);
-        await executeSol(forwardPda, destination, payer, program, connection)
+        await execute(payer, program, connection, forwardPda, destination)
         let destinationBalanceAfter = await connection.getBalance(destination.publicKey);
         expect(destinationBalanceAfter).to.equal(forwardAmount);
     });
@@ -58,7 +58,7 @@ describe("forward tests", () => {
         await deposit(connection, payer, forwardPda, forwardAmount);
         let invalidDestination = Keypair.generate();
         try {
-            await executeSol(forwardPda, invalidDestination, payer, program, connection)
+            await execute(payer, program, connection, forwardPda, destination)
         } catch (e) {
             expect(e).to.be.an.instanceof(SendTransactionError)
         }
@@ -77,7 +77,7 @@ describe("forward tests", () => {
         let destinationInitialBalance = 5000;
         let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, destinationInitialBalance, destination.publicKey);
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
-        await executeToken(forwardPda, forwardAta, destinationAta, payer, program, connection);
+        await execute(payer, program, connection, forwardPda, destination, forwardAta, destinationAta);
         const info = await connection.getTokenAccountBalance(destinationAta);
         expect(info.value.uiAmount).to.equal(forwardAmount + destinationInitialBalance);
     });

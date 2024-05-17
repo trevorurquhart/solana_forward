@@ -3,9 +3,9 @@ import * as borsh from "borsh";
 
 export enum ForwardInstructions {
     CreateForward,
-    ExecuteSol,
-    ExecuteToken,
+    Execute,
 }
+
 class Assignable {
     constructor(properties) {
         Object.keys(properties).map((key) => {
@@ -57,29 +57,12 @@ export class ExecuteForwardInstruction extends Assignable {
     toBuffer() { return Buffer.from(borsh.serialize(ExecuteForwardInstructionSchema, this)) }
 
     static fromBuffer(buffer: Buffer) {
-        return borsh.deserialize(ExecuteForwardInstructionSchema, ExecuteForwardTokenInstruction, buffer);
+        return borsh.deserialize(ExecuteForwardInstructionSchema, ExecuteForwardInstruction, buffer);
     };
 }
 
 const ExecuteForwardInstructionSchema = new Map([
     [ ExecuteForwardInstruction, {
-        kind: 'struct',
-        fields: [
-            ['instruction', 'u8'],
-        ],
-    }]
-]);
-
-export class ExecuteForwardTokenInstruction extends Assignable {
-    toBuffer() { return Buffer.from(borsh.serialize(ExecuteForwardTokenInstructionSchema, this)) }
-
-    static fromBuffer(buffer: Buffer) {
-        return borsh.deserialize(ExecuteForwardTokenInstructionSchema, ExecuteForwardTokenInstruction, buffer);
-    };
-}
-
-const ExecuteForwardTokenInstructionSchema = new Map([
-    [ ExecuteForwardTokenInstruction, {
         kind: 'struct',
         fields: [
             ['instruction', 'u8']
