@@ -25,8 +25,14 @@ pub fn execute(
     let destination_account = next_account_info(accounts_iter)?;
     let forward = Forward::try_from_slice(&forward_account.try_borrow_mut_data()?)?;
 
+    let lamports = forward_account.lamports();
+    msg!("Starting sol balance in forward: {}", lamports);
+
+
     forward_sol(forward_account, destination_account, &forward)
         .and_then(|_| {
+            let lamports = forward_account.lamports();
+            msg!("Forwarded sol, balance in forward: {}", lamports);
             match accounts_iter.next()
             {
                 Some(token_program) => forward_tokens(token_program, &forward, forward_account, destination_account, accounts_iter),

@@ -81,37 +81,36 @@ describe("forward tests", () => {
     //     expect(info.value.uiAmount).to.equal(forwardAmount);
     // });
 
-    it("Should forward sol and multiple tokens", async () =>{
+    it("Should forward sol and multiple tokens", async () => {
+        const mintAuthority2 = Keypair.generate();
+        console.log("Creating mint")
+
+        let mint2 = await createMint(connection, payer, mintAuthority2.publicKey, null, 0);
+
+        let solAmount = 200;
+        let token1Amount = 300;
+        let token2Amount = 400;
+
+        console.log("depositing to destination")
+        await deposit(connection, payer, forwardPda, solAmount);
+        let forwardAtaToken1 = await createAndFundAta(connection, payer, mint, mintAuthority, token1Amount, destination.publicKey);
+        let forwardAtaToken2 = await createAndFundAta(connection, payer, mint2, mintAuthority2, token2Amount, destination.publicKey);
+
+        let destAtaToken1 = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
+        let destAtaToken2 = await createAndFundAta(connection, payer, mint2, mintAuthority2, 0, destination.publicKey);
+
+        console.log("Executing")
         try {
-            const mintAuthority2 = Keypair.generate();
-            console.log("Creating mint")
-
-            let mint2 = await createMint(connection, payer, mintAuthority2.publicKey, null, 0);
-
-            let solAmount = 200;
-            let token1Amount = 300;
-            let token2Amount = 400;
-
-            console.log("depositing to destination")
-            await deposit(connection, payer, forwardPda, solAmount);
-            let forwardAtaToken1 = await createAndFundAta(connection, payer, mint, mintAuthority, token1Amount, destination.publicKey);
-            let forwardAtaToken2 = await createAndFundAta(connection, payer, mint2, mintAuthority2, token2Amount, destination.publicKey);
-
-            let destAtaToken1 = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
-            let destAtaToken2 = await createAndFundAta(connection, payer, mint2, mintAuthority2, 0, destination.publicKey);
-
-            console.log("Executing")
             await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, forwardAtaToken1, destAtaToken1, forwardAtaToken2, destAtaToken2);
-            const destinationSolBalance = await connection.getBalance(destination.publicKey).value.uiAmount;
-            const destinationToken1Balance = await connection.getTokenAccountBalance(destAtaToken1).value.uiAmount;
-            const destinationToken2Balance = await connection.getTokenAccountBalance(destAtaToken2).value.uiAmount;
-
-            expect(destinationSolBalance).to.equal(solAmount);
-            expect(destinationToken1Balance).to.equal(token1Amount);
-            expect(destinationToken2Balance).to.equal(token1Amount);
-
         } catch (e) {
-            console.log(e)
+            console.error(e);
         }
+        const destinationSolBalance = await connection.getBalance(destination.publicKey).value.uiAmount;
+        const destinationToken1Balance = await connection.getTokenAccountBalance(destAtaToken1).value.uiAmount;
+        const destinationToken2Balance = await connection.getTokenAccountBalance(destAtaToken2).value.uiAmount;
+
+        expect(destinationSolBalance).to.equal(solAmount);
+        expect(destinationToken1Balance).to.equal(token1Amount);
+        expect(destinationToken2Balance).to.equal(token1Amount);
     });
 });
