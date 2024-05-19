@@ -29,28 +29,34 @@ pub fn execute(
         .and_then(|_| {
             match accounts_iter.next()
             {
-                Some(token_program) => transfer_tokens(token_program, forward, forward_account, destination_account, accounts_iter),//Ok(()),
+                Some(token_program) => forward_tokens(token_program, &forward, forward_account, destination_account, accounts_iter),
                 None => Ok(()),
             }
         })
 }
 
-fn transfer_tokens<'a>(token_program: &AccountInfo<>, forward: Forward, forward_account: &AccountInfo<'a>, destination_account: &AccountInfo, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult{
-    process_token_transfers(forward, token_program, forward_account, destination_account, accounts_iter)
+fn forward_tokens<'a>(token_program: &AccountInfo<>, forward: &Forward, forward_account: &AccountInfo<'a>, destination_account: &AccountInfo, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult{
+    while let (Some(forward_ata), Some(destination_ata)) = (accounts_iter.next(), accounts_iter.next())  {
+        let result = forward_token(forward, token_program, forward_account, destination_account, forward_ata, destination_ata);
+        msg!("Forward token result, {}", result.is_err());
+        if result.is_err()
+        {
+            return result;
+        }
+    }
+    Ok(())
 }
 
-fn process_token_transfers<'a>(
-    forward: Forward,
+fn forward_token<'a>(
+    forward: &Forward,
     token_program: &AccountInfo,
     forward_account: &AccountInfo<'a>,
     _destination_account: &AccountInfo,
-    accounts_iter: &mut Iter<AccountInfo<'a>>
+    forward_ata_account: &AccountInfo<'a>,
+    destination_ata_account: &AccountInfo<'a>
 ) -> ProgramResult {
 
     msg!("Executing token");
-
-    let forward_ata_account = next_account_info(accounts_iter)?;
-    let destination_ata_account = next_account_info(accounts_iter)?;
 
     let forward_ata_state = Account::unpack(&forward_ata_account.data.borrow())?;
     let token_balance = forward_ata_state.amount;

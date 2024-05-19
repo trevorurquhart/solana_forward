@@ -30,8 +30,6 @@ export async function createATA(
     return associatedToken;
 }
 
-
-
 export async function createAndFundAta(connection, payer, mint, mintAuthority, mintAmount, to)
 {
     // Create associated token accounts for the new accounts

@@ -46,23 +46,18 @@ export async function createForward(forwardPda, destination, quarantine, payer, 
     );
 }
 
-export async function execute(payer, program, connection, forwardPda, destination, forwardAta?, destinationAta?) {
+//tokenAccounts = TOKEN_PROGRAM_ID, forwardAta1, destinationAta1, forwardAta2, destinationAta2.....
+export async function execute(payer, program, connection, forwardPda, destination, ...tokenAccounts: PublicKey[]) {
 
-    let tokenAccounts = [];
-    if (typeof forwardAta !== 'undefined') {
-        tokenAccounts =
-            [
-                {pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false},
-                {pubkey: forwardAta, isSigner: false, isWritable: true},
-                {pubkey: destinationAta, isSigner: false, isWritable: true}
-            ];
-    }
+    let tokenTransactionAccounts = tokenAccounts.map(key  => ({pubkey: key, isSigner: false, isWritable: true}));
+    let keys = [
+        {pubkey: forwardPda, isSigner: false, isWritable: true},
+        {pubkey: destination.publicKey, isSigner: false, isWritable: true},
+        ...tokenTransactionAccounts,
+    ];
+
     let ix = new TransactionInstruction({
-        keys: [
-            {pubkey: forwardPda, isSigner: false, isWritable: true},
-            {pubkey: destination.publicKey, isSigner: false, isWritable: true},
-            ...tokenAccounts,
-        ],
+        keys: keys,
         programId: program.publicKey,
         data: (
             new ExecuteForwardInstruction({
