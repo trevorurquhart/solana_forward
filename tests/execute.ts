@@ -1,5 +1,5 @@
 import {Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SendTransactionError,} from '@solana/web3.js';
-import {deposit} from "./fns/deposit";
+import {deposit, initialiseSystemAccount} from "./fns/accounts";
 import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {Forward} from "./classes/classes";
@@ -21,6 +21,7 @@ describe("forward tests", () => {
     beforeEach("setup", async () => {
         destination = Keypair.generate();
         quarantine = Keypair.generate();
+        await initialiseSystemAccount(connection, payer, destination.publicKey);
         mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
         await createForward(forwardPda, destination, quarantine, payer, program, forwardId, forwardBump, connection);
@@ -35,12 +36,12 @@ describe("forward tests", () => {
     });
 
     it("Should transfer sol when executed", async () => {
-        // let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
+        let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
         let forwardAmount = LAMPORTS_PER_SOL/100;
         await deposit(connection, payer, forwardPda, forwardAmount);
         await execute(payer, program, connection, forwardPda, destination)
         let destinationBalanceAfter = await connection.getBalance(destination.publicKey);
-        expect(destinationBalanceAfter).to.equal(forwardAmount);
+        expect(destinationBalanceAfter - destinationBalanceBefore).to.equal(forwardAmount);
     });
 
     it("Should deposit tokens to forward", async () =>{

@@ -3,6 +3,10 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ForwardError {
+
+    #[error("Destination not initialised")]
+    DestinationNotInitialised,
+
     #[error("Invalid destination")]
     InvalidDestination,
 }

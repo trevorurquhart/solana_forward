@@ -1,10 +1,10 @@
 import {Forward} from "./classes/classes";
-import {expect} from "chai";
+import {expect  } from "chai";
 import {Connection, Keypair, PublicKey, SendTransactionError} from "@solana/web3.js";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {beforeEach} from "mocha";
-import {createMint} from "@solana/spl-token";
-import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
+import {createForward, deriveForwardPda} from "./fns/forwardFns";
+import {deposit, initialiseSystemAccount} from "./fns/accounts";
 
 const connection = new Connection(`http://localhost:8899`, 'confirmed');
 const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
@@ -17,6 +17,7 @@ let destination, quarantine, mint, forwardPda, forwardBump;
 beforeEach("setup", async () => {
     destination = Keypair.generate();
     quarantine = Keypair.generate();
+    await initialiseSystemAccount(connection, payer, destination.publicKey);
 });
 
 describe("initialisation tests", () => {
@@ -36,11 +37,13 @@ describe("initialisation tests", () => {
     });
 
     it("Should require destination to exist", async () => {
-        [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
+        const uninitialisedDestination = Keypair.generate();
+        [forwardPda, forwardBump] = deriveForwardPda(uninitialisedDestination.publicKey, forwardId, program.publicKey);
         try {
-            await createForward(forwardPda, destination, quarantine, payer, program, forwardId, forwardBump, connection);
+            await createForward(forwardPda, uninitialisedDestination, quarantine, payer, program, forwardId, forwardBump, connection);
+            expect.fail("Should not have created forward")
         } catch (e) {
-            expect(e).to.be.an.instanceof(SendTransactionError)
+            expect(e.message).to.contain("custom program error: 0x0")
         }
 
     });

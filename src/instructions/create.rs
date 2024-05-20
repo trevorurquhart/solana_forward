@@ -1,6 +1,7 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{account_info::{AccountInfo, next_account_info}, entrypoint::ProgramResult, msg, pubkey::Pubkey, rent::Rent, system_instruction, sysvar::Sysvar};
 use solana_program::program::invoke_signed;
+use crate::errors::ForwardError::DestinationNotInitialised;
 
 use crate::state::Forward;
 
@@ -24,8 +25,6 @@ pub fn create(
     let payer = next_account_info(accounts_iter)?;
     let system_account = next_account_info(accounts_iter)?;
 
-    msg!("forward_account: {}", forward_account.key);
-
     assert!(payer.is_signer);
     assert!(payer.is_writable);
 
@@ -41,10 +40,9 @@ pub fn create(
     // assert!(forward_account.is_writable);
     // assert!(system_program::check_id(system_account.key));
 
-    // assert!(!destination_account.is_writable);
-    // assert!(!destination_account.is_signer);
-    // assert!(!quarantine_account.is_writable);
-    // assert!(!quarantine_account.is_signer);
+    if destination_account.lamports() == 0 {
+        return Err(DestinationNotInitialised.into());
+    }
 
     let rent = Rent::get()?.minimum_balance(Forward::LEN);
     // destination_account.key.as_ref()

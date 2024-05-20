@@ -19,3 +19,14 @@ export async function deposit(
         [from]
     );
 }
+
+export async function initialiseSystemAccount(
+    connection,
+    payer,
+    to
+)
+{
+    const minumumBalance = await connection.getMinimumBalanceForRentExemption(0);
+    await deposit(connection, payer, to, minumumBalance);
+}
+
