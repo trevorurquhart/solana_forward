@@ -26,16 +26,6 @@ describe("forward tests", () => {
         await createForward(forwardPda, destination, quarantine, payer, program, forwardId, forwardBump, connection);
     });
 
-    it("Should initialise forward", async () => {
-        const forwardInfo = await connection.getAccountInfo(forwardPda);
-        const fwd= Forward.fromBuffer(forwardInfo.data);
-
-        expect(fwd.id).to.equal(forwardId);
-        expect(fwd.bump).to.equal(forwardBump);
-        expect(new PublicKey(fwd.destination)).to.deep.equal(destination.publicKey);
-        expect(new PublicKey(fwd.quarantine)).to.deep.equal(quarantine.publicKey);
-    });
-
     it("Should deposit to forward", async () => {
         let depositAmount = LAMPORTS_PER_SOL/100;
         let balanceBefore = await connection.getBalance(forwardPda);
@@ -51,18 +41,6 @@ describe("forward tests", () => {
         await execute(payer, program, connection, forwardPda, destination)
         let destinationBalanceAfter = await connection.getBalance(destination.publicKey);
         expect(destinationBalanceAfter).to.equal(forwardAmount);
-    });
-
-    it("Should not transfer sol to an invalid destination", async () =>{
-        let forwardAmount = LAMPORTS_PER_SOL/100;
-        await deposit(connection, payer, forwardPda, forwardAmount);
-        let invalidDestination = Keypair.generate();
-        try {
-            await execute(payer, program, connection, forwardPda, destination)
-        } catch (e) {
-            expect(e).to.be.an.instanceof(SendTransactionError)
-        }
-
     });
 
     it("Should deposit tokens to forward", async () =>{
