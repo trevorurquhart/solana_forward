@@ -28,23 +28,22 @@ pub fn execute(
     let lamports = forward_account.lamports();
     msg!("Starting sol balance in forward: {}", lamports);
 
-
-    forward_sol(forward_account, destination_account, &forward)
+    maybe_forward_tokens(&forward, forward_account, accounts_iter)
         .and_then(|_| {
-            let lamports = forward_account.lamports();
-            msg!("Forwarded sol, balance in forward: {}", lamports);
-            match accounts_iter.next()
-            {
-                Some(token_program) => forward_tokens(token_program, &forward, forward_account, destination_account, accounts_iter),
-                None => Ok(()),
-            }
+            forward_sol(forward_account, destination_account, &forward)
         })
 }
 
-fn forward_tokens<'a>(token_program: &AccountInfo<>, forward: &Forward, forward_account: &AccountInfo<'a>, destination_account: &AccountInfo, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult{
+fn maybe_forward_tokens<'a>(forward: &Forward, forward_account: &AccountInfo<'a>, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult {
+    if let Some(token_program) = accounts_iter.next() {
+        return forward_tokens(token_program, &forward, forward_account, accounts_iter)
+    }
+    Ok(())
+}
+
+fn forward_tokens<'a>(token_program: &AccountInfo<>, forward: &Forward, forward_account: &AccountInfo<'a>, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult{
     while let (Some(forward_ata), Some(destination_ata)) = (accounts_iter.next(), accounts_iter.next())  {
-        let result = forward_token(forward, token_program, forward_account, destination_account, forward_ata, destination_ata);
-        msg!("Forward token result, {}", result.is_err());
+        let result = forward_token(forward, token_program, forward_account, forward_ata, destination_ata);
         if result.is_err()
         {
             return result;
@@ -57,7 +56,6 @@ fn forward_token<'a>(
     forward: &Forward,
     token_program: &AccountInfo,
     forward_account: &AccountInfo<'a>,
-    _destination_account: &AccountInfo,
     forward_ata_account: &AccountInfo<'a>,
     destination_ata_account: &AccountInfo<'a>
 ) -> ProgramResult {
@@ -95,12 +93,17 @@ fn forward_sol(forward_account: &AccountInfo, destination_account: &AccountInfo,
         msg!("Destination does not match forward");
         return Err(ForwardError::InvalidDestination.into());
     }
+    msg!("Transferred, destination balance before: {}", destination_account.lamports());
 
     let rent_balance = Rent::get()?.minimum_balance(forward_account.data_len());
     let available_sol = forward_account.lamports() - rent_balance;
+    msg!("Tranfer sol, balance: {}, rent balance: {}, amount: {}", forward_account.lamports(), rent_balance, available_sol);
+
     if available_sol > 0 {
         **forward_account.try_borrow_mut_lamports()? -= available_sol;
         **destination_account.try_borrow_mut_lamports()? += available_sol;
     }
+    msg!("Transferred, forward balance after: {}", forward_account.lamports());
+    msg!("Transferred, destination balance after: {}", destination_account.lamports());
     Ok(())
 }
