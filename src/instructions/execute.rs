@@ -25,9 +25,6 @@ pub fn execute(
     let destination_account = next_account_info(accounts_iter)?;
     let forward = Forward::try_from_slice(&forward_account.try_borrow_mut_data()?)?;
 
-    let lamports = forward_account.lamports();
-    msg!("Starting sol balance in forward: {}", lamports);
-
     maybe_forward_tokens(&forward, forward_account, accounts_iter)
         .and_then(|_| {
             forward_sol(forward_account, destination_account, &forward)
@@ -60,8 +57,6 @@ fn forward_token<'a>(
     forward_ata_account: &AccountInfo<'a>,
     destination_ata_account: &AccountInfo<'a>
 ) -> ProgramResult {
-
-    msg!("Executing token");
 
     let forward_ata_state = Account::unpack(&forward_ata_account.data.borrow())?;
     let token_balance = forward_ata_state.amount;
@@ -99,17 +94,12 @@ fn forward_sol(forward_account: &AccountInfo, destination_account: &AccountInfo,
         msg!("Destination does not match forward");
         return Err(ForwardError::InvalidDestination.into());
     }
-    msg!("Transferred, destination balance before: {}", destination_account.lamports());
-
     let rent_balance = Rent::get()?.minimum_balance(forward_account.data_len());
     let available_sol = forward_account.lamports() - rent_balance;
-    msg!("Tranfer sol, balance: {}, rent balance: {}, amount: {}", forward_account.lamports(), rent_balance, available_sol);
 
     if available_sol > 0 {
         **forward_account.try_borrow_mut_lamports()? -= available_sol;
         **destination_account.try_borrow_mut_lamports()? += available_sol;
     }
-    msg!("Transferred, forward balance after: {}", forward_account.lamports());
-    msg!("Transferred, destination balance after: {}", destination_account.lamports());
     Ok(())
 }
