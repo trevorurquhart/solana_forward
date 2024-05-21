@@ -55,7 +55,7 @@ describe("forward tests", () => {
         let forwardAmount = 1000;
         let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
-        await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, forwardAta, destinationAta);
+        await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
         const info = await connection.getTokenAccountBalance(destinationAta);
         expect(info.value.uiAmount).to.equal(forwardAmount);
     });
@@ -79,7 +79,7 @@ describe("forward tests", () => {
         let destAtaToken2 = await createAndFundAta(connection, payer, mint2, mintAuthority2, 0, destination.publicKey);
 
         try {
-            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, fwdAtaToken1, destAtaToken1, fwdAtaToken2, destAtaToken2);
+            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2,  fwdAtaToken2, destAtaToken2);
         } catch (e) {
             console.error(e);
         }
