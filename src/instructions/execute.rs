@@ -9,8 +9,8 @@ use solana_program::program_pack::Pack;
 use solana_program::pubkey::Pubkey;
 use solana_program::rent::Rent;
 use solana_program::sysvar::Sysvar;
-use spl_token::instruction::transfer;
-use spl_token::state::Account;
+use spl_token_2022::instruction::transfer;
+use spl_token_2022::state::Account;
 
 use crate::errors::ForwardError;
 use crate::state::Forward;
