@@ -33,7 +33,8 @@ pub fn create(
     assert!(payer.is_writable);
 
     validate(program_id, system_account, forward_account, destination_account, &instr)
-        .and_then(|_| create_forward_account(&program_id, &instr, &forward_account, &payer, &system_account, &destination_account.key, quarantine_account.key)?)
+        .and_then(|_|
+            create_forward_account(&program_id, &instr, &forward_account, &payer, &system_account, &destination_account.key, quarantine_account.key))
 }
 
 fn create_forward_account<'a>(
@@ -44,7 +45,7 @@ fn create_forward_account<'a>(
     system_account: &AccountInfo<'a>,
     destination_key: &Pubkey,
     quarantine_key: &Pubkey
-) -> Result<Result<(), ProgramError>, ProgramError> {
+) -> ProgramResult {
 
     invoke_signed(&system_instruction::create_account(
         payer.key,
@@ -71,7 +72,7 @@ fn create_forward_account<'a>(
 
     forward.serialize(&mut &mut forward_account.data.borrow_mut()[..])?;
 
-    Ok(Ok(()))
+    Ok(())
 }
 
 fn validate(

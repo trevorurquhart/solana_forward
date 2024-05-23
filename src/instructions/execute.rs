@@ -26,9 +26,9 @@ pub fn execute(
     let forward = Forward::try_from_slice(&forward_account.try_borrow_mut_data()?)?;
 
     maybe_forward_tokens(&forward, forward_account, accounts_iter)
-        .and_then(|_| {
-            forward_sol(forward_account, destination_account, &forward)
-        })
+        .and_then(|_|
+            forward_sol(forward_account, destination_account, &forward))
+
 }
 
 fn maybe_forward_tokens<'a>(forward: &Forward, forward_account: &AccountInfo<'a>, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult {

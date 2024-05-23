@@ -1,10 +1,10 @@
 import {Forward} from "./classes/classes";
-import {expect  } from "chai";
-import {Connection, Keypair, PublicKey, SendTransactionError} from "@solana/web3.js";
+import {expect} from "chai";
+import {Connection, Keypair, PublicKey} from "@solana/web3.js";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {beforeEach} from "mocha";
 import {createForward, deriveForwardPda} from "./fns/forwardFns";
-import {deposit, initialiseAccountWithMinimumBalance} from "./fns/accounts";
+import {initialiseAccountWithMinimumBalance} from "./fns/accounts";
 import {createAndFundAta} from "./fns/createToken";
 import {ASSOCIATED_TOKEN_PROGRAM_ID, createMint} from "@solana/spl-token";
 
@@ -95,6 +95,7 @@ describe("create instruction tests", () => {
     });
 
     it("Should error if the system program is not the system program", async () => {
+        // noinspection UnnecessaryLocalVariableJS
         const bogusSystemProgram = ASSOCIATED_TOKEN_PROGRAM_ID;
         try {
             await createForward(forwardPda, destination.publicKey, quarantine, payer, bogusSystemProgram, forwardId, forwardBump, connection);
