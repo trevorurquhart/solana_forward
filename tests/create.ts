@@ -98,9 +98,17 @@ describe("create instruction tests", () => {
         // noinspection UnnecessaryLocalVariableJS
         const bogusSystemProgram = ASSOCIATED_TOKEN_PROGRAM_ID;
         try {
-            await createForward(forwardPda, destination.publicKey, quarantine, payer, bogusSystemProgram, forwardId, forwardBump, connection);
+            await createForward(forwardPda,
+                destination.publicKey,
+                quarantine,
+                payer,
+                program,
+                forwardId,
+                forwardBump,
+                connection,
+                bogusSystemProgram);
         } catch (e) {
-            expect(e.message).to.contain("Transaction instruction index 0 has undefined program id")
+            expect(e.message).to.contain("incorrect program id for instruction")
             return;
         }
         expect.fail("Should not have created forward")

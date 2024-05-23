@@ -84,7 +84,7 @@ fn validate(
 ) -> ProgramResult {
 
     if system_account.key != &solana_program::system_program::id() {
-        msg!("System account is not the system program");
+        msg!("System program is not correct");
         return Err(ProgramError::IncorrectProgramId);
     }
 

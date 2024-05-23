@@ -5,6 +5,7 @@ use solana_program::account_info::{AccountInfo, next_account_info};
 use solana_program::entrypoint::ProgramResult;
 use solana_program::msg;
 use solana_program::program::invoke_signed;
+use solana_program::program_error::ProgramError;
 use solana_program::program_pack::Pack;
 use solana_program::pubkey::Pubkey;
 use solana_program::rent::Rent;
@@ -33,6 +34,10 @@ pub fn execute(
 
 fn maybe_forward_tokens<'a>(forward: &Forward, forward_account: &AccountInfo<'a>, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult {
     if let Some(token_program) = accounts_iter.next() {
+        if token_program.key != &spl_token_2022::id() {
+            msg!("Token program is not correct");
+            return Err(ProgramError::IncorrectProgramId);
+        }
         return forward_tokens(token_program, &forward, forward_account, accounts_iter)
     }
     Ok(())

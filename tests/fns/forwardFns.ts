@@ -20,7 +20,15 @@ export function deriveForwardPda(destPubkey: PublicKey, id: Number, programId) {
     )
 }
 
-export async function createForward(forwardPda, desintationPublicKey: PublicKey, quarantine, payer, program, forwardId, forwardBump, connection) {
+export async function createForward(forwardPda,
+                                    desintationPublicKey: PublicKey,
+                                    quarantine,
+                                    payer,
+                                    program,
+                                    forwardId,
+                                    forwardBump,
+                                    connection,
+                                    systemProgram: any | PublicKey = SystemProgram.programId) {
 
     let ix = new TransactionInstruction({
         keys: [
@@ -28,7 +36,7 @@ export async function createForward(forwardPda, desintationPublicKey: PublicKey,
             {pubkey: desintationPublicKey, isSigner: false, isWritable: false},
             {pubkey: quarantine.publicKey, isSigner: false, isWritable: false},
             {pubkey: payer.publicKey, isSigner: true, isWritable: true},
-            {pubkey: SystemProgram.programId, isSigner: false, isWritable: false}
+            {pubkey: systemProgram, isSigner: false, isWritable: false}
         ],
         programId: program.publicKey,
         data: (
