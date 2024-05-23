@@ -7,11 +7,7 @@ import {
 } from "@solana/web3.js";
 import {Buffer} from "buffer";
 import {toLeArray} from "./toLeArray";
-import {
-    CreateForwardInstruction, ExecuteForwardInstruction,
-    ForwardInstructions
-} from "../classes/classes";
-import {TOKEN_PROGRAM_ID} from "@solana/spl-token";
+import {CreateForwardInstruction, ExecuteForwardInstruction, ForwardInstructions} from "../classes/classes";
 
 export function deriveForwardPda(destPubkey: PublicKey, id: Number, programId) {
     return PublicKey.findProgramAddressSync(

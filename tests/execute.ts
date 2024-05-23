@@ -1,8 +1,7 @@
-import {Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SendTransactionError,} from '@solana/web3.js';
+import {Connection, Keypair, LAMPORTS_PER_SOL,} from '@solana/web3.js';
 import {deposit, initialiseAccountWithMinimumBalance} from "./fns/accounts";
 import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
 import {createKeypairFromFile} from "./fns/createKeyPair";
-import {Forward} from "./classes/classes";
 import {beforeEach} from "mocha";
 import {expect} from "chai";
 import {createMint, TOKEN_PROGRAM_ID} from "@solana/spl-token";
@@ -55,7 +54,11 @@ describe("execute instruction tests", () => {
         let forwardAmount = 1000;
         let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
-        await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+        try {
+            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+        } catch (e) {
+            console.log(e)
+        }
         const info = await connection.getTokenAccountBalance(destinationAta);
         expect(info.value.uiAmount).to.equal(forwardAmount);
     });
