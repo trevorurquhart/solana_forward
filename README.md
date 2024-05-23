@@ -8,21 +8,22 @@ Instructions on how to set up a local environment can be found [here](https://so
 
 #### Build
 ```bash
-# Install dependencies
-$ yarn
-
-# Build
-$ cargo build
 
 # Start local validator:
 $ solana-test-validator
-# Test
-$ yarn run test
 
 # Deploy to local validator
 # cargo build-bpf
 # solana program deploy ./target/deploy/solana_forward.so
 $ ./build_forward.sh
+
+# Install dependencies
+$ yarn
+
+# Test
+$ yarn run test
+
+
 ````
 
 #### Useful Solana commands
@@ -45,7 +46,6 @@ $ solana airdrop 2
 
 # Get wallet ballance
 $ solana balance
-
 
 # Watch local validator logs
 $ solana logs --url localhost
