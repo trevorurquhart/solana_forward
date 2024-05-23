@@ -93,7 +93,7 @@ fn validate(
     }
 
     //TODO - is the 2nd condition necessary?
-    if destination_account.lamports() == 0 || Forward::try_from_slice(&forward_account.try_borrow_mut_data()?).is_ok() {
+    if forward_account.lamports() != 0 || Forward::try_from_slice(&forward_account.try_borrow_mut_data()?).is_ok() {
         msg!("Forward account already exists");
         return Err(ForwardError::ForwardAlreadyExists.into());
     }
