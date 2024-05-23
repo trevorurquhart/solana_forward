@@ -20,7 +20,7 @@ export async function deposit(
     );
 }
 
-export async function initialiseSystemAccount(
+export async function initialiseAccountWithMinimumBalance(
     connection,
     payer,
     to

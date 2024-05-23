@@ -1,5 +1,5 @@
 import {Connection, Keypair, LAMPORTS_PER_SOL, SendTransactionError} from "@solana/web3.js";
-import {deposit, initialiseSystemAccount} from "./fns/accounts";
+import {deposit, initialiseAccountWithMinimumBalance} from "./fns/accounts";
 import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
 import {expect} from "chai";
 import {createKeypairFromFile} from "./fns/createKeyPair";
@@ -17,9 +17,9 @@ describe("validation tests", () => {
     beforeEach("setup", async () => {
         destination = Keypair.generate();
         quarantine = Keypair.generate();
-        await initialiseSystemAccount(connection, payer, destination.publicKey);
+        await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
-        await createForward(forwardPda, destination, quarantine, payer, program, forwardId, forwardBump, connection);
+        await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
     });
 
     it("Should not transfer sol to an invalid destination", async () => {
@@ -30,7 +30,7 @@ describe("validation tests", () => {
             await execute(payer, program, connection, forwardPda, invalidDestination)
             expect.fail("Should not have executed")
         } catch (e) {
-            expect(e.message).to.contain("custom program error: 0x1")
+            expect(e.message).to.contain("custom program error: 0x2")
         }
     });
 });

@@ -15,6 +15,7 @@ num-derive = "0.4.2"
 thiserror = "1.0.59"
 spl-token-2022 = "3.0.2"
 spl-associated-token-account = "3.0.2"
+spl-token = "4.0.1"
 
 [lib]
 name = "solana_forward"

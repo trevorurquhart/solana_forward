@@ -1,8 +1,11 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{account_info::{AccountInfo, next_account_info}, entrypoint::ProgramResult, msg, pubkey::Pubkey, rent::Rent, system_instruction, sysvar::Sysvar};
 use solana_program::program::invoke_signed;
-use crate::errors::ForwardError::DestinationNotInitialised;
+use solana_program::program_pack::Pack;
+use spl_token::state::Account as SplTokenAccount;
+use spl_token_2022::state::Account as SplToken2022Account;
 
+use crate::errors::ForwardError::{DestinationIsAnAta, DestinationNotInitialised};
 use crate::state::Forward;
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
@@ -16,7 +19,6 @@ pub fn create(
     accounts: &[AccountInfo],
     instr: CreateForwardInstruction,
 ) -> ProgramResult {
-    msg!("instr: id: {}, bump: {}", instr.id, instr.bump);
 
     let accounts_iter = &mut accounts.iter();
     let forward_account = next_account_info(accounts_iter)?;
@@ -41,16 +43,20 @@ pub fn create(
     // assert!(system_program::check_id(system_account.key));
 
     if destination_account.lamports() == 0 {
+        msg!("Destination {} has not been initialised. Has balance: {}", destination_account.key, destination_account.lamports());
         return Err(DestinationNotInitialised.into());
     }
 
-    let rent = Rent::get()?.minimum_balance(Forward::LEN);
-    // destination_account.key.as_ref()
+    //TODO: Find a better way to check if destination is an ATA
+    if SplToken2022Account::unpack(&destination_account.data.borrow()).is_ok() || SplTokenAccount::unpack(&destination_account.data.borrow()).is_ok() {
+        msg!("Destination {} is an ATA", destination_account.key);
+        return Err(DestinationIsAnAta.into());
+    }
 
     invoke_signed(&system_instruction::create_account(
         payer.key,
         forward_account.key,
-        rent,
+        Rent::get()?.minimum_balance(Forward::LEN),
         Forward::LEN.try_into().unwrap(),
         program_id,
     ), &[

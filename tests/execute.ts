@@ -1,5 +1,5 @@
 import {Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SendTransactionError,} from '@solana/web3.js';
-import {deposit, initialiseSystemAccount} from "./fns/accounts";
+import {deposit, initialiseAccountWithMinimumBalance} from "./fns/accounts";
 import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {Forward} from "./classes/classes";
@@ -8,7 +8,7 @@ import {expect} from "chai";
 import {createMint, TOKEN_PROGRAM_ID} from "@solana/spl-token";
 import {createAndFundAta} from "./fns/createToken";
 
-describe("forward tests", () => {
+describe("execute instruction tests", () => {
 
     const connection = new Connection(`http://localhost:8899`, 'confirmed');
     const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
@@ -21,10 +21,10 @@ describe("forward tests", () => {
     beforeEach("setup", async () => {
         destination = Keypair.generate();
         quarantine = Keypair.generate();
-        await initialiseSystemAccount(connection, payer, destination.publicKey);
+        await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
         mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
-        await createForward(forwardPda, destination, quarantine, payer, program, forwardId, forwardBump, connection);
+        await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
     });
 
     it("Should deposit to forward", async () => {

@@ -4,7 +4,9 @@ import {Connection, Keypair, PublicKey, SendTransactionError} from "@solana/web3
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {beforeEach} from "mocha";
 import {createForward, deriveForwardPda} from "./fns/forwardFns";
-import {deposit, initialiseSystemAccount} from "./fns/accounts";
+import {deposit, initialiseAccountWithMinimumBalance} from "./fns/accounts";
+import {createAndFundAta} from "./fns/createToken";
+import {createMint} from "@solana/spl-token";
 
 const connection = new Connection(`http://localhost:8899`, 'confirmed');
 const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
@@ -17,15 +19,19 @@ let destination, quarantine, mint, forwardPda, forwardBump;
 beforeEach("setup", async () => {
     destination = Keypair.generate();
     quarantine = Keypair.generate();
-    await initialiseSystemAccount(connection, payer, destination.publicKey);
+    await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
 });
 
-describe("initialisation tests", () => {
+describe("create instruction tests", () => {
 
-    it("Should initialise forward", async () => {
+    it("Should create forward", async () => {
 
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
-        await createForward(forwardPda, destination, quarantine, payer, program, forwardId, forwardBump, connection);
+        try {
+            await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
+        } catch (e) {
+            expect.fail("Should have created forward");
+        }
 
         const forwardInfo = await connection.getAccountInfo(forwardPda);
         const fwd= Forward.fromBuffer(forwardInfo.data);
@@ -40,13 +46,28 @@ describe("initialisation tests", () => {
         const uninitialisedDestination = Keypair.generate();
         [forwardPda, forwardBump] = deriveForwardPda(uninitialisedDestination.publicKey, forwardId, program.publicKey);
         try {
-            await createForward(forwardPda, uninitialisedDestination, quarantine, payer, program, forwardId, forwardBump, connection);
-            expect.fail("Should not have created forward")
+            await createForward(forwardPda, uninitialisedDestination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x0")
+            return;
         }
-
+        expect.fail("Should not have created forward")
     });
+
+    it("The destination should not be an ATA", async () => {
+        const mintAuthority = Keypair.generate();
+        const mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
+        let destAtaToken1 = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
+        const [forwardToTokenPda, forwardBump] = deriveForwardPda(destAtaToken1, forwardId, program.publicKey);
+        try {
+            await createForward(forwardToTokenPda, destAtaToken1, quarantine, payer, program, forwardId, forwardBump, connection);
+        } catch (e) {
+            expect(e.message).to.contain("custom program error: 0x1")
+            return;
+        }
+        expect.fail("Should not have created forward")
+    });
+
 });
 
 
