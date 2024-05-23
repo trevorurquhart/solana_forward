@@ -15,6 +15,9 @@ pub enum ForwardError {
 
     #[error("Forward account already exists")]
     ForwardAlreadyExists,
+
+    #[error("Invalid forward address")]
+    InvalidForwardAddress,
 }
 
 impl From<ForwardError> for ProgramError {

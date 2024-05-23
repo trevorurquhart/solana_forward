@@ -5,8 +5,8 @@ use solana_program::program_error::ProgramError;
 use solana_program::program_pack::Pack;
 use spl_token::state::Account as SplTokenAccount;
 use spl_token_2022::state::Account as SplToken2022Account;
-use crate::errors::ForwardError;
 
+use crate::errors::ForwardError;
 use crate::errors::ForwardError::{DestinationIsAnAta, DestinationNotInitialised};
 use crate::state::Forward;
 
@@ -32,7 +32,7 @@ pub fn create(
     assert!(payer.is_signer);
     assert!(payer.is_writable);
 
-    validate(&forward_account, &destination_account)
+    validate(program_id, forward_account, destination_account, &instr)
         .and_then(|_| create_forward_account(&program_id, &instr, &forward_account, &payer, &system_account, &destination_account.key, quarantine_account.key)?)
 }
 
@@ -45,6 +45,7 @@ fn create_forward_account<'a>(
     destination_key: &Pubkey,
     quarantine_key: &Pubkey
 ) -> Result<Result<(), ProgramError>, ProgramError> {
+
     invoke_signed(&system_instruction::create_account(
         payer.key,
         forward_account.key,
@@ -67,24 +68,30 @@ fn create_forward_account<'a>(
         quarantine: quarantine_key.clone(),
         bump: instr.bump,
     };
+
     forward.serialize(&mut &mut forward_account.data.borrow_mut()[..])?;
+
     Ok(Ok(()))
 }
 
-fn validate(forward_account: &&AccountInfo, destination_account: &&AccountInfo) -> ProgramResult {
+fn validate(
+    program_id: &Pubkey,
+    forward_account: &AccountInfo,
+    destination_account: &AccountInfo,
+    instr: &CreateForwardInstruction
+) -> ProgramResult {
 
-    // let (forward_pda, forward_pda_bump) =
-    //     Pubkey::find_program_address(&[Forward::FORWARD_SEED.as_ref(), destination_key.as_ref(), instr.id.to_be_bytes().as_ref()], program_id);
-    //
-    // msg!("forward_pda: {}, forward_pda_bump: {}", forward_pda, forward_pda_bump);
-
-    // assert!(forward_account.is_signer);
-    // assert!(forward_account.is_writable);
-    // assert!(system_program::check_id(system_account.key));
+    // if (system_account)
 
     if destination_account.lamports() == 0 {
         msg!("Destination {} has not been initialised. Has balance: {}", destination_account.key, destination_account.lamports());
         return Err(DestinationNotInitialised.into());
+    }
+
+    //TODO - is the 2nd condition necessary?
+    if destination_account.lamports() == 0 || Forward::try_from_slice(&forward_account.try_borrow_mut_data()?).is_ok() {
+        msg!("Forward account already exists");
+        return Err(ForwardError::ForwardAlreadyExists.into());
     }
 
     //TODO: Find a better way to check if destination is an ATA
@@ -93,9 +100,11 @@ fn validate(forward_account: &&AccountInfo, destination_account: &&AccountInfo) 
         return Err(DestinationIsAnAta.into());
     }
 
-    if Forward::try_from_slice(&forward_account.try_borrow_mut_data()?).is_ok() {
-        msg!("Forward account already exists");
-        return Err(ForwardError::ForwardAlreadyExists.into());
+    let forward_pda_check =
+        Pubkey::create_program_address(&[Forward::FORWARD_SEED.as_ref(), destination_account.key.as_ref(), instr.id.to_le_bytes().as_ref(), &[instr.bump]], program_id);
+    if forward_pda_check.is_err() || forward_pda_check.unwrap() != *forward_account.key {
+        msg!("Forward address does not match derived address");
+        return Err(ForwardError::InvalidForwardAddress.into());
     }
 
     Ok(())

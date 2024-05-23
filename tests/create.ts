@@ -30,6 +30,7 @@ describe("create instruction tests", () => {
         try {
             await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
         } catch (e) {
+            console.log(e)
             expect.fail("Should have created forward");
         }
 
@@ -71,12 +72,23 @@ describe("create instruction tests", () => {
     it ("Should fail if try to re-initialise the forward with a different destination", async ()=> {
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
         await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
-        const aBogusDestination = Keypair.generate();
-        await initialiseAccountWithMinimumBalance(connection, payer, aBogusDestination.publicKey);
+        const bogusDestination = Keypair.generate();
+        await initialiseAccountWithMinimumBalance(connection, payer, bogusDestination.publicKey);
         try {
-            await createForward(forwardPda, aBogusDestination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
+            await createForward(forwardPda, bogusDestination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x3")
+            return;
+        }
+        expect.fail("Should not have created forward")
+    });
+
+    it("Should error if the forward pda does not match the derived pda", async () => {
+        const bogusPda = Keypair.generate();
+        try {
+            await createForward(bogusPda.publicKey, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
+        } catch (e) {
+            expect(e.message).to.contain("custom program error: 0x4")
             return;
         }
         expect.fail("Should not have created forward")
