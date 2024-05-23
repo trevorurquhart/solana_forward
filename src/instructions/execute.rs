@@ -9,6 +9,7 @@ use solana_program::program_pack::Pack;
 use solana_program::pubkey::Pubkey;
 use solana_program::rent::Rent;
 use solana_program::sysvar::Sysvar;
+use spl_associated_token_account::get_associated_token_address;
 use spl_token_2022::check_spl_token_program_account;
 use spl_token_2022::instruction::transfer_checked;
 use spl_token_2022::state::{Account, Mint};
@@ -35,7 +36,6 @@ pub fn execute(
 fn maybe_forward_tokens<'a>(forward: &Forward, forward_account: &AccountInfo<'a>, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult {
     if let Some(token_program) = accounts_iter.next() {
         check_spl_token_program_account(token_program.key)?;
-        msg!("forwarding tokens");
         return forward_tokens(token_program, &forward, forward_account, accounts_iter)
     }
     Ok(())
@@ -60,6 +60,16 @@ fn forward_token<'a>(
     forward_ata_account: &AccountInfo<'a>,
     destination_ata_account: &AccountInfo<'a>
 ) -> ProgramResult {
+
+    if *forward_ata_account.key != get_associated_token_address(&forward_account.key, mint_account.key) {
+        msg!("Forward ATA does not match forward");
+        return Err(ForwardError::InvalidTokenSource.into());
+    }
+
+    if *destination_ata_account.key != get_associated_token_address(&forward.destination, mint_account.key) {
+        msg!("Destination does not match forward");
+        return Err(ForwardError::InvalidTokenDestination.into());
+    }
 
     let forward_ata_state = Account::unpack(&forward_ata_account.data.borrow())?;
     let token_balance = forward_ata_state.amount;

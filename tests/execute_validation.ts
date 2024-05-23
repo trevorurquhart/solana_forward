@@ -5,7 +5,7 @@ import {expect} from "chai";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {beforeEach} from "mocha";
 import {createAndFundAta} from "./fns/createToken";
-import {createMint} from "@solana/spl-token";
+import {createMint, TOKEN_PROGRAM_ID} from "@solana/spl-token";
 
 const connection = new Connection(`http://localhost:8899`, 'confirmed');
 const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
@@ -14,7 +14,7 @@ const forwardId = 123456;
 
 let destination, quarantine, forwardPda, forwardBump, mint, mintAuthority;
 
-describe("validation tests", () => {
+describe("execute validation tests", () => {
 
 
 
@@ -54,6 +54,33 @@ describe("validation tests", () => {
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x2")
         }
+    });
+
+    it("Should not transfer tokens from an invalid destination", async () => {
+        let forwardAmount = 1000;
+        let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
+        let invalidDestination = Keypair.generate();
+        try {
+            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, invalidDestination.publicKey, destinationAta);
+        } catch (e) {
+            expect(e.message).to.contain("custom program error: 0x3")
+            return;
+        }
+        expect.fail("Should not have executed")
+    });
+
+    it("Should not transfer tokens to an invalid destination", async () => {
+
+        let forwardAmount = 1000;
+        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
+        let invalidDestination = Keypair.generate();
+        try {
+            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, invalidDestination.publicKey);
+        } catch (e) {
+            expect(e.message).to.contain("custom program error: 0x4")
+            return;
+        }
+        expect.fail("Should not have executed")
     });
 });
 

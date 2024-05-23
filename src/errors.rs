@@ -13,6 +13,12 @@ pub enum ForwardError {
     #[error("Invalid destination")]
     InvalidDestination,
 
+    #[error("Invalid token source")]
+    InvalidTokenSource,
+
+    #[error("Invalid token destination")]
+    InvalidTokenDestination,
+
     #[error("Forward account already exists")]
     ForwardAlreadyExists,
 

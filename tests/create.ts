@@ -69,7 +69,7 @@ describe("create instruction tests", () => {
         expect.fail("Should not have created forward")
     });
 
-    it("Should fail if try to re-initialise the forward with a different destination", async () => {
+    it("Should fail to re-initialise the forward with a different destination", async () => {
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
         await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
         const bogusDestination = Keypair.generate();
@@ -77,7 +77,7 @@ describe("create instruction tests", () => {
         try {
             await createForward(forwardPda, bogusDestination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
         } catch (e) {
-            expect(e.message).to.contain("custom program error: 0x3")
+            expect(e.message).to.contain("custom program error: 0x5")
             return;
         }
         expect.fail("Should not have created forward")
@@ -88,7 +88,7 @@ describe("create instruction tests", () => {
         try {
             await createForward(bogusPda.publicKey, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
         } catch (e) {
-            expect(e.message).to.contain("custom program error: 0x4")
+            expect(e.message).to.contain("custom program error: 0x6")
             return;
         }
         expect.fail("Should not have created forward")
