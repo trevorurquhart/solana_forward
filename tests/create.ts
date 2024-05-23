@@ -6,7 +6,7 @@ import {beforeEach} from "mocha";
 import {createForward, deriveForwardPda} from "./fns/forwardFns";
 import {deposit, initialiseAccountWithMinimumBalance} from "./fns/accounts";
 import {createAndFundAta} from "./fns/createToken";
-import {createMint} from "@solana/spl-token";
+import {ASSOCIATED_TOKEN_PROGRAM_ID, createMint} from "@solana/spl-token";
 
 const connection = new Connection(`http://localhost:8899`, 'confirmed');
 const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
@@ -35,7 +35,7 @@ describe("create instruction tests", () => {
         }
 
         const forwardInfo = await connection.getAccountInfo(forwardPda);
-        const fwd= Forward.fromBuffer(forwardInfo.data);
+        const fwd = Forward.fromBuffer(forwardInfo.data);
 
         expect(fwd.id).to.equal(forwardId);
         expect(fwd.bump).to.equal(forwardBump);
@@ -69,7 +69,7 @@ describe("create instruction tests", () => {
         expect.fail("Should not have created forward")
     });
 
-    it ("Should fail if try to re-initialise the forward with a different destination", async ()=> {
+    it("Should fail if try to re-initialise the forward with a different destination", async () => {
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
         await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
         const bogusDestination = Keypair.generate();
@@ -89,6 +89,17 @@ describe("create instruction tests", () => {
             await createForward(bogusPda.publicKey, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x4")
+            return;
+        }
+        expect.fail("Should not have created forward")
+    });
+
+    it("Should error if the system program is not the system program", async () => {
+        const bogusSystemProgram = ASSOCIATED_TOKEN_PROGRAM_ID;
+        try {
+            await createForward(forwardPda, destination.publicKey, quarantine, payer, bogusSystemProgram, forwardId, forwardBump, connection);
+        } catch (e) {
+            expect(e.message).to.contain("Transaction instruction index 0 has undefined program id")
             return;
         }
         expect.fail("Should not have created forward")

@@ -32,7 +32,7 @@ pub fn create(
     assert!(payer.is_signer);
     assert!(payer.is_writable);
 
-    validate(program_id, forward_account, destination_account, &instr)
+    validate(program_id, system_account, forward_account, destination_account, &instr)
         .and_then(|_| create_forward_account(&program_id, &instr, &forward_account, &payer, &system_account, &destination_account.key, quarantine_account.key)?)
 }
 
@@ -76,12 +76,16 @@ fn create_forward_account<'a>(
 
 fn validate(
     program_id: &Pubkey,
+    system_account: &AccountInfo,
     forward_account: &AccountInfo,
     destination_account: &AccountInfo,
     instr: &CreateForwardInstruction
 ) -> ProgramResult {
 
-    // if (system_account)
+    if system_account.key != &solana_program::system_program::id() {
+        msg!("System account is not the system program");
+        return Err(ProgramError::IncorrectProgramId);
+    }
 
     if destination_account.lamports() == 0 {
         msg!("Destination {} has not been initialised. Has balance: {}", destination_account.key, destination_account.lamports());
