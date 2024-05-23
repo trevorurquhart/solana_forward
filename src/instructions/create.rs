@@ -4,6 +4,7 @@ use solana_program::program::invoke_signed;
 use solana_program::program_pack::Pack;
 use spl_token::state::Account as SplTokenAccount;
 use spl_token_2022::state::Account as SplToken2022Account;
+use crate::errors::ForwardError;
 
 use crate::errors::ForwardError::{DestinationIsAnAta, DestinationNotInitialised};
 use crate::state::Forward;
@@ -51,6 +52,11 @@ pub fn create(
     if SplToken2022Account::unpack(&destination_account.data.borrow()).is_ok() || SplTokenAccount::unpack(&destination_account.data.borrow()).is_ok() {
         msg!("Destination {} is an ATA", destination_account.key);
         return Err(DestinationIsAnAta.into());
+    }
+
+    if Forward::try_from_slice(&forward_account.try_borrow_mut_data()?).is_ok() {
+        msg!("Forward account already exists");
+        return Err(ForwardError::ForwardAlreadyExists.into());
     }
 
     invoke_signed(&system_instruction::create_account(

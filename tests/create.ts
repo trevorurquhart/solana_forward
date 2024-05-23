@@ -68,6 +68,20 @@ describe("create instruction tests", () => {
         expect.fail("Should not have created forward")
     });
 
+    it ("Should fail if try to re-initialise the forward with a different destination", async ()=> {
+        [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
+        await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
+        const aBogusDestination = Keypair.generate();
+        await initialiseAccountWithMinimumBalance(connection, payer, aBogusDestination.publicKey);
+        try {
+            await createForward(forwardPda, aBogusDestination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
+        } catch (e) {
+            expect(e.message).to.contain("custom program error: 0x3")
+            return;
+        }
+        expect.fail("Should not have created forward")
+    });
+
 });
 
 

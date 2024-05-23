@@ -12,6 +12,9 @@ pub enum ForwardError {
 
     #[error("Invalid destination")]
     InvalidDestination,
+
+    #[error("Forward account already exists")]
+    ForwardAlreadyExists,
 }
 
 impl From<ForwardError> for ProgramError {
