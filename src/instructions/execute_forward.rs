@@ -3,7 +3,6 @@ use std::slice::Iter;
 use borsh::BorshDeserialize;
 use solana_program::account_info::AccountInfo;
 use solana_program::entrypoint::ProgramResult;
-use solana_program::msg;
 use solana_program::program::invoke_signed;
 use solana_program::program_error::ProgramError;
 use solana_program::program_pack::Pack;
@@ -110,10 +109,7 @@ fn forward_sol(forward_account: &AccountInfo, destination_account: &AccountInfo)
     Ok(())
 }
 
-pub fn validate_forward(program_id: &Pubkey, forward_account: &&AccountInfo) -> Result<Forward, ProgramError> {
-    if forward_account.owner != program_id {
-        msg!("Forward account not owned by this program");
-        return Err(ProgramError::IncorrectProgramId.into());
-    }
+pub fn get_forward(program_id: &Pubkey, forward_account: &&AccountInfo) -> Result<Forward, ProgramError> {
+    assert_that("Forward account is owned by program", forward_account.owner == program_id, ProgramError::IncorrectProgramId)?;
     Ok(Forward::try_from_slice(&forward_account.try_borrow_mut_data()?)?)
 }
