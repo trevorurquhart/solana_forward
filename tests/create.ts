@@ -11,10 +11,9 @@ import {ASSOCIATED_TOKEN_PROGRAM_ID, createMint} from "@solana/spl-token";
 const connection = new Connection(`http://localhost:8899`, 'confirmed');
 const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
 const program = createKeypairFromFile('./target/deploy/solana_forward-keypair.json');
-const mintAuthority = Keypair.generate();
 const forwardId = 123456;
 
-let destination, quarantine, mint, forwardPda, forwardBump;
+let destination, quarantine, forwardPda, forwardBump;
 
 beforeEach("setup", async () => {
     destination = Keypair.generate();

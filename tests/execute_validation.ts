@@ -1,4 +1,4 @@
-import {Connection, Keypair, LAMPORTS_PER_SOL, SendTransactionError, SystemProgram} from "@solana/web3.js";
+import {Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram} from "@solana/web3.js";
 import {deposit, initialiseAccountWithMinimumBalance} from "./fns/accounts";
 import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
 import {expect} from "chai";
@@ -15,8 +15,6 @@ const forwardId = 123456;
 let destination, quarantine, forwardPda, forwardBump, mint, mintAuthority;
 
 describe("execute validation tests", () => {
-
-
 
     beforeEach("setup", async () => {
         destination = Keypair.generate();
@@ -57,7 +55,6 @@ describe("execute validation tests", () => {
     });
 
     it("Should not transfer tokens from an invalid destination", async () => {
-        let forwardAmount = 1000;
         let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
         let invalidDestination = Keypair.generate();
         try {
@@ -70,7 +67,6 @@ describe("execute validation tests", () => {
     });
 
     it("Should not transfer tokens to an invalid destination", async () => {
-
         let forwardAmount = 1000;
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
         let invalidDestination = Keypair.generate();
@@ -83,4 +79,3 @@ describe("execute validation tests", () => {
         expect.fail("Should not have executed")
     });
 });
-
