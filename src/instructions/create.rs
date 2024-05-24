@@ -64,6 +64,7 @@ fn create_forward_account<'a>(
         id: instr.id,
         destination: destination_key.clone(),
         quarantine: quarantine_key.clone(),
+        authority: payer.key.clone(),
         bump: instr.bump,
     };
 

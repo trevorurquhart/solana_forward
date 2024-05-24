@@ -26,8 +26,11 @@ pub enum ForwardError {
     #[error("Invalid forward address")]
     InvalidForwardAddress,
 
-    #[error("Destination not initialised")]
+    #[error("Quarantine not initialised")]
     QuarantineNotInitialised,
+
+    #[error("Invalid Authority")]
+    InvalidAuthority,
 }
 
 impl From<ForwardError> for ProgramError {

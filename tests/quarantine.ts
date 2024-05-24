@@ -30,10 +30,26 @@ describe("execute quarantine tests", () => {
         let quarantineBalanceBefore = await connection.getBalance(quarantineAcc.publicKey);
         let forwardAmount = LAMPORTS_PER_SOL/100;
         await deposit(connection, payer, forwardPda, forwardAmount);
-        await quarantine(payer, program, connection, forwardPda, quarantineAcc)
+        await quarantine(payer, program, connection, forwardPda, quarantineAcc, payer)
         let quarantineBalanceAfter = await connection.getBalance(quarantineAcc.publicKey);
         expect(quarantineBalanceAfter - quarantineBalanceBefore).to.equal(forwardAmount);
     });
+
+    it ("Only the forward authority can quarantine funds", async () => {
+        const someOtherAccount = Keypair.generate();
+        await deposit(connection, payer, someOtherAccount.publicKey, LAMPORTS_PER_SOL/10);
+
+        let forwardAmount = LAMPORTS_PER_SOL/100;
+        await deposit(connection, payer, forwardPda, forwardAmount);
+        try {
+            await quarantine(payer, program, connection, forwardPda, quarantineAcc, someOtherAccount)
+        } catch (e) {
+            expect(e.message).to.contain("custom program error: 0x8")
+            return;
+        }
+        expect.fail("Should not have quarantined");
+    });
+
     //
     // it("Should deposit tokens to forward", async () =>{
     //     let tokenAmount = 1000;

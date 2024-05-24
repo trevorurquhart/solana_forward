@@ -77,12 +77,13 @@ export async function execute(payer, program, connection, forwardPda, destinatio
 
 }
 
-export async function quarantine(payer, program, connection, forwardPda, quarantine, ...tokenAccounts: PublicKey[]) {
+export async function quarantine(payer, program, connection, forwardPda, quarantine, authority, ...tokenAccounts: PublicKey[]) {
 
     let tokenTransactionAccounts = tokenAccounts.map(key  => ({pubkey: key, isSigner: false, isWritable: true}));
     let keys = [
         {pubkey: forwardPda, isSigner: false, isWritable: true},
         {pubkey: quarantine.publicKey, isSigner: false, isWritable: true},
+        {pubkey: authority.publicKey, isSigner: true, isWritable: true},
         ...tokenTransactionAccounts,
     ];
 
@@ -98,7 +99,7 @@ export async function quarantine(payer, program, connection, forwardPda, quarant
     await sendAndConfirmTransaction(
         connection,
         new Transaction().add(ix),
-        [payer]
+        [payer, authority]
     );
 
 }

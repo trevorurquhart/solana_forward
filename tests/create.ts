@@ -41,6 +41,7 @@ describe("create instruction tests", () => {
         expect(fwd.bump).to.equal(forwardBump);
         expect(new PublicKey(fwd.destination)).to.deep.equal(destination.publicKey);
         expect(new PublicKey(fwd.quarantine)).to.deep.equal(quarantine.publicKey);
+        expect(new PublicKey(fwd.authority)).to.deep.equal(payer.publicKey);
     });
 
     it("Should require destination to exist", async () => {

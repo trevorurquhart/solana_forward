@@ -15,7 +15,11 @@ pub fn quarantine(
     let forward_account = next_account_info(accounts_iter)?;
     let forward = get_forward(program_id, &forward_account)?;
     let quarantine_account = next_account_info(accounts_iter)?;
+    let authority_account = next_account_info(accounts_iter)?;
 
+    assert_that("Authority is valid", *authority_account.key == forward.authority, ProgramError::from(ForwardError::InvalidAuthority))?;
+    assert_that("Authority is signer", authority_account.is_signer, ProgramError::from(ForwardError::InvalidAuthority))?;
     assert_that("Quarantine destination is valid",*quarantine_account.key == forward.quarantine, ProgramError::from(ForwardError::InvalidDestination))?;
+
     forward_to_destination(&forward, forward_account, quarantine_account, accounts_iter)
 }
