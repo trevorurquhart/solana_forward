@@ -5,6 +5,7 @@ use solana_program::account_info::{AccountInfo, next_account_info};
 use solana_program::entrypoint::ProgramResult;
 use solana_program::msg;
 use solana_program::program::invoke_signed;
+use solana_program::program_error::ProgramError;
 use solana_program::program_pack::Pack;
 use solana_program::pubkey::Pubkey;
 use solana_program::rent::Rent;
@@ -18,13 +19,18 @@ use crate::errors::ForwardError;
 use crate::state::Forward;
 
 pub fn execute(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
 ) -> ProgramResult {
 
     let accounts_iter = &mut accounts.iter();
     let forward_account = next_account_info(accounts_iter)?;
     let destination_account = next_account_info(accounts_iter)?;
+
+    if forward_account.owner != program_id {
+        msg!("Forward account not owned by this program");
+        return Err(ProgramError::IncorrectProgramId.into());
+    }
     let forward = Forward::try_from_slice(&forward_account.try_borrow_mut_data()?)?;
 
     maybe_forward_tokens(&forward, forward_account, accounts_iter)

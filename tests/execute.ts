@@ -82,7 +82,7 @@ describe("execute instruction tests", () => {
         let destAtaToken2 = await createAndFundAta(connection, payer, mint2, mintAuthority2, 0, destination.publicKey);
 
         try {
-            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2,  fwdAtaToken2, destAtaToken2);
+            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2, fwdAtaToken2, destAtaToken2);
         } catch (e) {
             console.error(e);
         }
