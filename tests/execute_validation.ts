@@ -24,6 +24,7 @@ describe("execute validation tests", () => {
         mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
 
         await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
+        await initialiseAccountWithMinimumBalance(connection, payer, quarantine.publicKey);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
         await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
     });

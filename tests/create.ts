@@ -19,6 +19,7 @@ beforeEach("setup", async () => {
     destination = Keypair.generate();
     quarantine = Keypair.generate();
     await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
+    await initialiseAccountWithMinimumBalance(connection, payer, quarantine.publicKey);
 });
 
 describe("create instruction tests", () => {
@@ -49,6 +50,18 @@ describe("create instruction tests", () => {
             await createForward(forwardPda, uninitialisedDestination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x0")
+            return;
+        }
+        expect.fail("Should not have created forward")
+    });
+
+    it("Should require quarantine to exist", async () => {
+        const uninitialisedQuarantine = Keypair.generate();
+        [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
+        try {
+            await createForward(forwardPda, destination.publicKey, uninitialisedQuarantine, payer, program, forwardId, forwardBump, connection);
+        } catch (e) {
+            expect(e.message).to.contain("custom program error: 0x7")
             return;
         }
         expect.fail("Should not have created forward")

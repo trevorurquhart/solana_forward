@@ -7,7 +7,7 @@ use spl_token::state::Account as SplTokenAccount;
 use spl_token_2022::state::Account as SplToken2022Account;
 
 use crate::errors::{assert_that, ForwardError};
-use crate::errors::ForwardError::DestinationNotInitialised;
+use crate::errors::ForwardError::{DestinationNotInitialised, QuarantineNotInitialised};
 use crate::state::Forward;
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
@@ -29,7 +29,7 @@ pub fn create(
     let payer = next_account_info(accounts_iter)?;
     let system_account = next_account_info(accounts_iter)?;
 
-    validate(program_id, system_account, forward_account, destination_account, &instr)
+    validate(program_id, system_account, forward_account, destination_account, quarantine_account, &instr)
         .and_then(|_|
             create_forward_account(&program_id, &instr, &forward_account, &payer, &system_account, &destination_account.key, quarantine_account.key))
 }
@@ -77,11 +77,13 @@ fn validate(
     system_account: &AccountInfo,
     forward_account: &AccountInfo,
     destination_account: &AccountInfo,
+    quarantine_account: &AccountInfo,
     instr: &CreateForwardInstruction
 ) -> ProgramResult {
 
     assert_that("System program is correct", system_account.key == &solana_program::system_program::id(), ProgramError::IncorrectProgramId)?;
     assert_that("Destination is initialised", destination_account.lamports() > 0, ProgramError::from(DestinationNotInitialised))?;
+    assert_that("Quarantine is initialised", quarantine_account.lamports() > 0, ProgramError::from(QuarantineNotInitialised))?;
 
     //TODO - is the 2nd condition necessary?
     assert_that("Forward does not exist",

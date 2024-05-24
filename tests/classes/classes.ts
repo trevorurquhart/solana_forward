@@ -4,6 +4,7 @@ import * as borsh from "borsh";
 export enum ForwardInstructions {
     CreateForward,
     Execute,
+    Quarantine,
 }
 
 class Assignable {

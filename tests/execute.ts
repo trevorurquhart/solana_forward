@@ -21,6 +21,7 @@ describe("execute instruction tests", () => {
         destination = Keypair.generate();
         quarantine = Keypair.generate();
         await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
+        await initialiseAccountWithMinimumBalance(connection, payer, quarantine.publicKey);
         mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
         await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
