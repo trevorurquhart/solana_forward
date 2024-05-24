@@ -6,7 +6,7 @@ use solana_program::pubkey::Pubkey;
 use crate::errors::ForwardError;
 use crate::instructions::execute_forward::{forward_to_destination, validate_forward};
 
-pub fn execute(
+pub fn quarantine(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
 ) -> ProgramResult {
@@ -14,14 +14,11 @@ pub fn execute(
     let accounts_iter = &mut accounts.iter();
     let forward_account = next_account_info(accounts_iter)?;
     let forward = validate_forward(program_id, &forward_account)?;
-    let destination_account = next_account_info(accounts_iter)?;
+    let quarantine_account = next_account_info(accounts_iter)?;
 
-    if *destination_account.key != forward.destination {
+    if *quarantine_account.key != forward.quarantine {
         msg!("Destination does not match forward");
         return Err(ForwardError::InvalidDestination.into());
     }
-    forward_to_destination(&forward, forward_account, destination_account, accounts_iter)
+    forward_to_destination(&forward, forward_account, quarantine_account, accounts_iter)
 }
-
-
-
