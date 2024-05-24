@@ -1,4 +1,5 @@
-use solana_program::{program_error::ProgramError};
+use solana_program::{msg, program_error::ProgramError};
+use solana_program::entrypoint::ProgramResult;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -31,3 +32,14 @@ impl From<ForwardError> for ProgramError {
        ProgramError::Custom(e as u32)
    }
 }
+
+
+pub fn assert_that(requirement: &str, condition: bool, error: ProgramError) -> ProgramResult {
+    if condition {
+        Ok(())
+    } else {
+        msg!("{} - failed", requirement);
+        Err(error.into())
+    }
+}
+

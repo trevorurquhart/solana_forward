@@ -15,7 +15,7 @@ use spl_token_2022::check_spl_token_program_account;
 use spl_token_2022::instruction::transfer_checked;
 use spl_token_2022::state::{Account, Mint};
 
-use crate::errors::ForwardError;
+use crate::errors::{assert_that, ForwardError};
 use crate::state::Forward;
 
 pub fn forward_to_destination<'a>(
@@ -58,25 +58,21 @@ fn forward_token<'a>(
     destination_ata_account: &AccountInfo<'a>
 ) -> ProgramResult {
 
-    if *forward_ata_account.key != get_associated_token_address(&forward_account.key, mint_account.key) {
-        msg!("Forward ATA does not match forward");
-        return Err(ForwardError::InvalidTokenSource.into());
-    }
+    assert_that("Forward ATA matches forward",
+                *forward_ata_account.key == get_associated_token_address(&forward_account.key, mint_account.key),
+                ProgramError::from(ForwardError::InvalidTokenSource))?;
 
-    if *destination_ata_account.key != get_associated_token_address(&forward.destination, mint_account.key) {
-        msg!("Destination does not match forward");
-        return Err(ForwardError::InvalidTokenDestination.into());
-    }
+    assert_that("Destination ATA matches forward",
+                *destination_ata_account.key == get_associated_token_address(&forward.destination, mint_account.key),
+                ProgramError::from(ForwardError::InvalidTokenDestination))?;
 
     let forward_ata_state = Account::unpack(&forward_ata_account.data.borrow())?;
     let token_balance = forward_ata_state.amount;
-
-    let mint = Mint::unpack(&mint_account.data.borrow())?;
-
     if token_balance == 0 {
         return Ok(());
     }
 
+    let mint = Mint::unpack(&mint_account.data.borrow())?;
     invoke_signed(
         &transfer_checked(
             token_program.key,
