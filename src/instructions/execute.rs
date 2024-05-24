@@ -82,6 +82,10 @@ fn forward_token<'a>(
 
     let mint = Mint::unpack(&mint_account.data.borrow())?;
 
+    if token_balance == 0 {
+        return Ok(());
+    }
+
     invoke_signed(
         &transfer_checked(
             token_program.key,

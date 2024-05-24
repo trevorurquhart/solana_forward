@@ -63,6 +63,22 @@ describe("execute instruction tests", () => {
         expect(info.value.uiAmount).to.equal(forwardAmount);
     });
 
+    it ("Will not transfer if the forward is empty", async () => {
+
+        let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
+        let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
+        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, forwardPda);
+
+
+        let minBalance = await connection.getMinimumBalanceForRentExemption(0);
+        expect(destinationBalanceBefore).to.equal(minBalance);
+
+        await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+        const info = await connection.getTokenAccountBalance(destinationAta);
+        expect(destinationBalanceBefore).to.equal(minBalance);
+        expect(info.value.uiAmount).to.equal(0);
+    });
+
     it("Should forward sol and multiple tokens", async () => {
         const mintAuthority2 = Keypair.generate();
         let mint2 = await createMint(connection, payer, mintAuthority2.publicKey, null, 0);
