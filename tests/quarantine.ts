@@ -42,7 +42,22 @@ describe("execute quarantine tests", () => {
         let forwardAmount = LAMPORTS_PER_SOL/100;
         await deposit(connection, payer, forwardPda, forwardAmount);
         try {
-            await quarantine(payer, program, connection, forwardPda, quarantineAcc, someOtherAccount)
+            await quarantine(someOtherAccount, program, connection, forwardPda, quarantineAcc, someOtherAccount)
+        } catch (e) {
+            expect(e.message).to.contain("custom program error: 0x8")
+            return;
+        }
+        expect.fail("Should not have quarantined");
+    });
+
+    it ("The forward authority must sign to quarantine", async () => {
+        const someOtherAccount = Keypair.generate();
+        await deposit(connection, payer, someOtherAccount.publicKey, LAMPORTS_PER_SOL/10);
+
+        let forwardAmount = LAMPORTS_PER_SOL/100;
+        await deposit(connection, payer, forwardPda, forwardAmount);
+        try {
+            await quarantine(someOtherAccount, program, connection, forwardPda, quarantineAcc, payer, false)
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x8")
             return;
