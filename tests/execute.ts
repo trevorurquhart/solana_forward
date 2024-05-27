@@ -24,15 +24,7 @@ describe("execute instruction tests", () => {
         await initialiseAccountWithMinimumBalance(connection, payer, quarantine.publicKey);
         mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
-        await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
-    });
-
-    it("Should deposit to forward", async () => {
-        let depositAmount = LAMPORTS_PER_SOL/100;
-        let balanceBefore = await connection.getBalance(forwardPda);
-        await deposit(connection, payer, forwardPda, depositAmount);
-        let balanceAfter = await connection.getBalance(forwardPda);
-        expect(balanceAfter - balanceBefore).to.equal(depositAmount);
+        await createForward(forwardPda, destination.publicKey, quarantine.publicKey, payer, program, forwardId, forwardBump, connection);
     });
 
     it("Should transfer sol when executed", async () => {
@@ -42,13 +34,6 @@ describe("execute instruction tests", () => {
         await execute(payer, program, connection, forwardPda, destination)
         let destinationBalanceAfter = await connection.getBalance(destination.publicKey);
         expect(destinationBalanceAfter - destinationBalanceBefore).to.equal(forwardAmount);
-    });
-
-    it("Should deposit tokens to forward", async () =>{
-        let tokenAmount = 1000;
-        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
-        const info = await connection.getTokenAccountBalance(forwardAta);
-        expect(info.value.uiAmount).to.equal(tokenAmount);
     });
 
     it("Should transfer tokens when executed", async () =>{
@@ -64,12 +49,11 @@ describe("execute instruction tests", () => {
         expect(info.value.uiAmount).to.equal(forwardAmount);
     });
 
-    it ("Will not transfer if the forward is empty", async () => {
+    it ("Execute will not transfer sol or tokens if there are no funds", async () => {
 
         let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
         let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, forwardPda);
-
 
         let minBalance = await connection.getMinimumBalanceForRentExemption(0);
         expect(destinationBalanceBefore).to.equal(minBalance);
@@ -80,7 +64,7 @@ describe("execute instruction tests", () => {
         expect(info.value.uiAmount).to.equal(0);
     });
 
-    it("Should forward sol and multiple tokens", async () => {
+    it("Execute should forward sol and multiple tokens", async () => {
         const mintAuthority2 = Keypair.generate();
         let mint2 = await createMint(connection, payer, mintAuthority2.publicKey, null, 0);
 
@@ -88,7 +72,6 @@ describe("execute instruction tests", () => {
         let token1Amount = 300;
         let token2Amount = 400;
 
-        await deposit(connection, payer, destination.publicKey, LAMPORTS_PER_SOL);
         const destSolBalanceBefore = await connection.getBalance(destination.publicKey);
 
         await deposit(connection, payer, forwardPda, solAmount);

@@ -4,7 +4,7 @@ use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
 
 use crate::errors::{assert_that, ForwardError};
-use crate::instructions::execute_forward::{forward_to_destination, get_forward};
+use crate::instructions::forward_to_address::{forward_to_address, validate_and_get_forward};
 
 pub fn quarantine(
     program_id: &Pubkey,
@@ -13,13 +13,13 @@ pub fn quarantine(
 
     let accounts_iter = &mut accounts.iter();
     let forward_account = next_account_info(accounts_iter)?;
-    let forward = get_forward(program_id, &forward_account)?;
     let quarantine_account = next_account_info(accounts_iter)?;
     let authority_account = next_account_info(accounts_iter)?;
 
+    let forward = validate_and_get_forward(program_id, &forward_account)?;
+    assert_that("Quarantine is valid",*quarantine_account.key == forward.quarantine, ProgramError::from(ForwardError::InvalidDestination))?;
     assert_that("Authority is valid", *authority_account.key == forward.authority, ProgramError::from(ForwardError::InvalidAuthority))?;
     assert_that("Authority is signer", authority_account.is_signer, ProgramError::from(ForwardError::InvalidAuthority))?;
-    assert_that("Quarantine destination is valid",*quarantine_account.key == forward.quarantine, ProgramError::from(ForwardError::InvalidDestination))?;
 
-    forward_to_destination(&forward, forward_account, quarantine_account, accounts_iter)
+    forward_to_address(&forward, forward_account, quarantine_account, accounts_iter)
 }

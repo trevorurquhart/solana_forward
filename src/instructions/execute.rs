@@ -4,7 +4,7 @@ use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
 
 use crate::errors::{assert_that, ForwardError};
-use crate::instructions::execute_forward::{forward_to_destination, get_forward};
+use crate::instructions::forward_to_address::{forward_to_address, validate_and_get_forward};
 
 pub fn execute(
     program_id: &Pubkey,
@@ -12,14 +12,13 @@ pub fn execute(
 ) -> ProgramResult {
 
     let accounts_iter = &mut accounts.iter();
-
     let forward_account = next_account_info(accounts_iter)?;
-    let forward = get_forward(program_id, &forward_account)?;
-
     let destination_account = next_account_info(accounts_iter)?;
+
+    let forward = validate_and_get_forward(program_id, &forward_account)?;
     assert_that("Destination is valid", *destination_account.key == forward.destination, ProgramError::from(ForwardError::InvalidDestination))?;
 
-    forward_to_destination(&forward, forward_account, destination_account, accounts_iter)
+    forward_to_address(&forward, forward_account, destination_account, accounts_iter)
 }
 
 

@@ -92,9 +92,13 @@ fn validate(
                 ProgramError::from(ForwardError::ForwardAlreadyExists))?;
 
     //TODO - is there a better way to do this?
-    assert_that("Forward is not an ATA",
+    assert_that("Destination is not an ATA",
                 SplToken2022Account::unpack(&destination_account.data.borrow()).is_err() && SplTokenAccount::unpack(&destination_account.data.borrow()).is_err(),
             ProgramError::from(ForwardError::DestinationIsAnAta))?;
+
+    assert_that("Destination is not an ATA",
+                SplToken2022Account::unpack(&quarantine_account.data.borrow()).is_err() && SplTokenAccount::unpack(&quarantine_account.data.borrow()).is_err(),
+                ProgramError::from(ForwardError::QuarantineIsAnAta))?;
 
     let forward_pda_check =
         Pubkey::create_program_address(&[Forward::FORWARD_SEED.as_ref(), destination_account.key.as_ref(), instr.id.to_le_bytes().as_ref(), &[instr.bump]], program_id);

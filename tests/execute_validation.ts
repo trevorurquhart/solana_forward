@@ -26,7 +26,7 @@ describe("execute validation tests", () => {
         await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
         await initialiseAccountWithMinimumBalance(connection, payer, quarantine.publicKey);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
-        await createForward(forwardPda, destination.publicKey, quarantine, payer, program, forwardId, forwardBump, connection);
+        await createForward(forwardPda, destination.publicKey, quarantine.publicKey, payer, program, forwardId, forwardBump, connection);
     });
 
     it("Should error if the token program id is incorrect", async () => {
@@ -43,13 +43,25 @@ describe("execute validation tests", () => {
         expect.fail("Should not have executed")
     });
 
+    it("Should not transfer sol to an invalid destination", async () => {
+        let forwardAmount = LAMPORTS_PER_SOL / 100;
+        await deposit(connection, payer, forwardPda, forwardAmount);
+        let invalidDestination = Keypair.generate();
+        try {
+            await execute(payer, program, connection, forwardPda, invalidDestination)
+            expect.fail("Should not have executed")
+        } catch (e) {
+            expect(e.message).to.contain("custom program error: 0x3")
+        }
+    });
+
     it("Should not transfer tokens from an invalid destination", async () => {
         let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
         let invalidDestination = Keypair.generate();
         try {
             await execute(payer, program, connection, forwardPda, destination,  TOKEN_PROGRAM_ID, mint, invalidDestination.publicKey, destinationAta);
         } catch (e) {
-            expect(e.message).to.contain("custom program error: 0x3")
+            expect(e.message).to.contain("custom program error: 0x4")
             return;
         }
         expect.fail("Should not have executed")
@@ -62,25 +74,13 @@ describe("execute validation tests", () => {
         try {
             await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, invalidDestination.publicKey);
         } catch (e) {
-            expect(e.message).to.contain("custom program error: 0x4")
+            expect(e.message).to.contain("custom program error: 0x5")
             return;
         }
         expect.fail("Should not have executed")
     });
 
-    it("Should not transfer sol to an invalid destination", async () => {
-        let forwardAmount = LAMPORTS_PER_SOL / 100;
-        await deposit(connection, payer, forwardPda, forwardAmount);
-        let invalidDestination = Keypair.generate();
-        try {
-            await execute(payer, program, connection, forwardPda, invalidDestination)
-            expect.fail("Should not have executed")
-        } catch (e) {
-            expect(e.message).to.contain("custom program error: 0x2")
-        }
-    });
-
-    it ("Should not transfer from a an invalid forward", async () => {
+    it ("Should not transfer from an invalid forward", async () => {
         let invalidForward = Keypair.generate();
         try {
             await execute(payer, program, connection, invalidForward.publicKey, destination);

@@ -8,8 +8,11 @@ pub enum ForwardError {
     #[error("Destination not initialised")]
     DestinationNotInitialised,
 
-    #[error("Destination should not be owned by the token program")]
+    #[error("Destination should not be an ATA")]
     DestinationIsAnAta,
+
+    #[error("Quarantine should not be an ATA")]
+    QuarantineIsAnAta,
 
     #[error("Invalid destination")]
     InvalidDestination,

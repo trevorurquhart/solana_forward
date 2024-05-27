@@ -17,29 +17,30 @@ use spl_token_2022::state::{Account, Mint};
 use crate::errors::{assert_that, ForwardError};
 use crate::state::Forward;
 
-pub fn forward_to_destination<'a>(
+pub fn forward_to_address<'a>(
     forward: &Forward,
     forward_account: &AccountInfo<'a>,
-    destination_account: &AccountInfo<'a>,
+    target_account: &AccountInfo<'a>,
     accounts_iter: &mut Iter<AccountInfo<'a>>,
 ) -> ProgramResult {
 
-    maybe_forward_tokens(&forward, forward_account, accounts_iter)
+    maybe_forward_tokens(&forward, forward_account, target_account, accounts_iter)
         .and_then(|_|
-            forward_sol(forward_account, destination_account))
+            forward_sol(forward_account, target_account))
 }
 
-fn maybe_forward_tokens<'a>(forward: &Forward, forward_account: &AccountInfo<'a>, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult {
+fn maybe_forward_tokens<'a>(forward: &Forward, forward_account: &AccountInfo<'a>, target_account: &AccountInfo<'a>, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult {
     if let Some(token_program) = accounts_iter.next() {
         check_spl_token_program_account(token_program.key)?;
-        return forward_tokens(token_program, &forward, forward_account, accounts_iter)
+        return forward_tokens(token_program, &forward, forward_account, target_account, accounts_iter)
     }
     Ok(())
 }
 
-fn forward_tokens<'a>(token_program: &AccountInfo<>, forward: &Forward, forward_account: &AccountInfo<'a>, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult{
-    while let (Some(mint), Some(forward_ata), Some(destination_ata)) = (accounts_iter.next(), accounts_iter.next(), accounts_iter.next())  {
-        let result = forward_token(forward, token_program, mint, forward_account, forward_ata, destination_ata);
+fn forward_tokens<'a>(token_program: &AccountInfo<>, forward: &Forward, forward_account: &AccountInfo<'a>, target_account: &AccountInfo<'a>, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult{
+    //TODO: Validate # of accounts we expect
+    while let (Some(mint), Some(forward_ata), Some(target_ata)) = (accounts_iter.next(), accounts_iter.next(), accounts_iter.next())  {
+        let result = forward_token(forward, token_program, mint, forward_account, target_account, forward_ata, target_ata);
         if result.is_err()
         {
             return result;
@@ -53,16 +54,17 @@ fn forward_token<'a>(
     token_program: &AccountInfo,
     mint_account: &AccountInfo<'a>,
     forward_account: &AccountInfo<'a>,
+    target_account: &AccountInfo<'a>,
     forward_ata_account: &AccountInfo<'a>,
-    destination_ata_account: &AccountInfo<'a>
+    target_ata_account: &AccountInfo<'a>
 ) -> ProgramResult {
 
     assert_that("Forward ATA matches forward",
                 *forward_ata_account.key == get_associated_token_address(&forward_account.key, mint_account.key),
                 ProgramError::from(ForwardError::InvalidTokenSource))?;
 
-    assert_that("Destination ATA matches forward",
-                *destination_ata_account.key == get_associated_token_address(&forward.destination, mint_account.key),
+    assert_that("Target ATA matches forward",
+                *target_ata_account.key == get_associated_token_address(&target_account.key, mint_account.key),
                 ProgramError::from(ForwardError::InvalidTokenDestination))?;
 
     let forward_ata_state = Account::unpack(&forward_ata_account.data.borrow())?;
@@ -77,7 +79,7 @@ fn forward_token<'a>(
             token_program.key,
             forward_ata_account.key,
             mint_account.key,
-            destination_ata_account.key,
+            target_ata_account.key,
             forward_account.key,
             &[forward_account.key],
             token_balance,
@@ -86,7 +88,7 @@ fn forward_token<'a>(
         &[
             forward_ata_account.clone(),
             mint_account.clone(),
-            destination_ata_account.clone(),
+            target_ata_account.clone(),
             forward_account.clone(),
         ],
         &[&[
@@ -109,7 +111,7 @@ fn forward_sol(forward_account: &AccountInfo, destination_account: &AccountInfo)
     Ok(())
 }
 
-pub fn get_forward(program_id: &Pubkey, forward_account: &&AccountInfo) -> Result<Forward, ProgramError> {
+pub fn validate_and_get_forward(program_id: &Pubkey, forward_account: &&AccountInfo) -> Result<Forward, ProgramError> {
     assert_that("Forward account is owned by program", forward_account.owner == program_id, ProgramError::IncorrectProgramId)?;
     Ok(Forward::try_from_slice(&forward_account.try_borrow_mut_data()?)?)
 }
