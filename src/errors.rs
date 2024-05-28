@@ -34,6 +34,9 @@ pub enum ForwardError {
 
     #[error("Invalid Authority")]
     InvalidAuthority,
+
+    #[error("Invalid number of accounts")]
+    InvalidNumberOfAccounts,
 }
 
 impl From<ForwardError> for ProgramError {

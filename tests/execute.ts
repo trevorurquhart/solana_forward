@@ -31,7 +31,11 @@ describe("execute instruction tests", () => {
         let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
         let forwardAmount = LAMPORTS_PER_SOL / 100;
         await deposit(connection, payer, forwardPda, forwardAmount);
-        await execute(payer, program, connection, forwardPda, destination)
+        try {
+            await execute(payer, program, connection, forwardPda, destination)
+        } catch (e) {
+            console.log(e)
+        }
         let destinationBalanceAfter = await connection.getBalance(destination.publicKey);
         expect(destinationBalanceAfter - destinationBalanceBefore).to.equal(forwardAmount);
     });

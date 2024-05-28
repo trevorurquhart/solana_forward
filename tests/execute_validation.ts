@@ -91,5 +91,15 @@ describe("execute validation tests", () => {
         expect.fail("Should not have executed");
     });
 
-
+    it("Should error if the number of accounts is invalid", async () => {
+        let forwardAmount = 1000;
+        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
+        try {
+            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta);
+        } catch (e) {
+            expect(e.message).to.contain("custom program error: 0xa")
+            return;
+        }
+        expect.fail("Should not have executed")
+    });
 });
