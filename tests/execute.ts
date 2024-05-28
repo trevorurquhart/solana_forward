@@ -4,7 +4,7 @@ import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {beforeEach} from "mocha";
 import {expect} from "chai";
-import {createMint, TOKEN_PROGRAM_ID} from "@solana/spl-token";
+import {createMint, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID} from "@solana/spl-token";
 import {createAndFundAta} from "./fns/createToken";
 
 describe("execute instruction tests", () => {
@@ -29,14 +29,14 @@ describe("execute instruction tests", () => {
 
     it("Should transfer sol when executed", async () => {
         let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
-        let forwardAmount = LAMPORTS_PER_SOL/100;
+        let forwardAmount = LAMPORTS_PER_SOL / 100;
         await deposit(connection, payer, forwardPda, forwardAmount);
         await execute(payer, program, connection, forwardPda, destination)
         let destinationBalanceAfter = await connection.getBalance(destination.publicKey);
         expect(destinationBalanceAfter - destinationBalanceBefore).to.equal(forwardAmount);
     });
 
-    it("Should transfer tokens when executed", async () =>{
+    it("Should transfer tokens when executed", async () => {
         let forwardAmount = 1000;
         let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
@@ -49,7 +49,7 @@ describe("execute instruction tests", () => {
         expect(info.value.uiAmount).to.equal(forwardAmount);
     });
 
-    it ("Execute will not transfer sol or tokens if there are no funds", async () => {
+    it("Execute will not transfer sol or tokens if there are no funds", async () => {
 
         let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
         let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
@@ -68,7 +68,7 @@ describe("execute instruction tests", () => {
         const mintAuthority2 = Keypair.generate();
         let mint2 = await createMint(connection, payer, mintAuthority2.publicKey, null, 0);
 
-        let solAmount = LAMPORTS_PER_SOL/200;
+        let solAmount = LAMPORTS_PER_SOL / 200;
         let token1Amount = 300;
         let token2Amount = 400;
 
@@ -93,5 +93,19 @@ describe("execute instruction tests", () => {
         expect(destSolBalance - destSolBalanceBefore, "sol balance").to.equal(solAmount);
         expect(destToken1Balance, "token 1 balance").to.equal(token1Amount);
         expect(destToken2Balance, "token 2 balance").to.equal(token2Amount);
+    });
+
+    it("should create a token account for the destination if one does not exist", async () => {
+        let tokenAmount = 1000;
+        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
+        const uninitialised = await getAssociatedTokenAddressSync(mint, destination.publicKey, false, program.publicKey, TOKEN_PROGRAM_ID);
+        console.log("uninitialised", uninitialised.toBase58())
+        try {
+            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, uninitialised);
+        } catch (e) {
+            console.log(e)
+        }
+        const info = await connection.getTokenAccountBalance(uninitialised);
+        expect(info.value.uiAmount).to.equal(tokenAmount);
     });
 });

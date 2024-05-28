@@ -3,6 +3,7 @@ use std::slice::Iter;
 use borsh::BorshDeserialize;
 use solana_program::account_info::AccountInfo;
 use solana_program::entrypoint::ProgramResult;
+use solana_program::msg;
 use solana_program::program::invoke_signed;
 use solana_program::program_error::ProgramError;
 use solana_program::program_pack::Pack;
@@ -63,8 +64,11 @@ fn forward_token<'a>(
                 *forward_ata_account.key == get_associated_token_address(&forward_account.key, mint_account.key),
                 ProgramError::from(ForwardError::InvalidTokenSource))?;
 
+    msg!("target account: {}", target_account.key);
+    let address = get_associated_token_address(&target_account.key, mint_account.key);
+    msg!("target ata    : {}", address);
     assert_that("Target ATA matches forward",
-                *target_ata_account.key == get_associated_token_address(&target_account.key, mint_account.key),
+                *target_ata_account.key == address,
                 ProgramError::from(ForwardError::InvalidTokenDestination))?;
 
     let forward_ata_state = Account::unpack(&forward_ata_account.data.borrow())?;
