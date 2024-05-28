@@ -30,8 +30,8 @@ describe("create instruction tests", () => {
         try {
             await createForward(forwardPda, destination.publicKey, quarantine.publicKey, payer, program, forwardId, forwardBump, connection);
         } catch (e) {
-            console.log(e)
             expect.fail("Should have created forward");
+            return;
         }
 
         const forwardInfo = await connection.getAccountInfo(forwardPda);
@@ -42,6 +42,45 @@ describe("create instruction tests", () => {
         expect(new PublicKey(fwd.destination)).to.deep.equal(destination.publicKey);
         expect(new PublicKey(fwd.quarantine)).to.deep.equal(quarantine.publicKey);
         expect(new PublicKey(fwd.authority)).to.deep.equal(payer.publicKey);
+    });
+
+    it("Should not create forward if already exists", async () => {
+        [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
+        try {
+            await createForward(forwardPda, destination.publicKey, quarantine.publicKey, payer, program, forwardId, forwardBump, connection);
+        } catch (e) {
+            expect.fail("Should have created forward");
+            return;
+        }
+        try {
+            await createForward(forwardPda, destination.publicKey, quarantine.publicKey, payer, program, forwardId, forwardBump, connection);
+        } catch (e) {
+            expect(e.message).to.contain("custom program error: 0x6tes")
+            return;
+        }
+    });
+
+    it ("Should create multiple forwards for one destination", async () => {
+        const forwardId1 = 100;
+        const forwardId2 = 200;
+        const [forwardPda1, forwardBump1] = deriveForwardPda(destination.publicKey, forwardId1, program.publicKey);
+        const [forwardPda2, forwardBump2] = deriveForwardPda(destination.publicKey, forwardId2, program.publicKey);
+        console.log("forwardPda1", forwardPda1.toBase58())
+        console.log("forwardPda2", forwardPda2.toBase58())
+        try {
+            await createForward(forwardPda1, destination.publicKey, quarantine.publicKey, payer, program, forwardId1, forwardBump1, connection);
+            await createForward(forwardPda2, destination.publicKey, quarantine.publicKey, payer, program, forwardId2, forwardBump2, connection);
+        } catch (e) {
+            console.log(e)
+            expect.fail("Should have created forward");
+            return;
+        }
+        const forwardInfo1 = await connection.getAccountInfo(forwardPda1);
+        const forwardInfo2 = await connection.getAccountInfo(forwardPda2);
+        const fwd1 = Forward.fromBuffer(forwardInfo1.data);
+        const fwd2 = Forward.fromBuffer(forwardInfo2.data);
+        expect(fwd1.id).to.equal(forwardId1);
+        expect(fwd2.id).to.equal(forwardId2);
     });
 
     it("Should require destination to exist", async () => {
