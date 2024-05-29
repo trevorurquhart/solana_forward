@@ -55,7 +55,7 @@ describe("create instruction tests", () => {
         try {
             await createForward(forwardPda, destination.publicKey, quarantine.publicKey, payer, program, forwardId, forwardBump, connection);
         } catch (e) {
-            expect(e.message).to.contain("custom program error: 0x6tes")
+            expect(e.message).to.contain("custom program error: 0x6")
             return;
         }
     });
@@ -65,8 +65,6 @@ describe("create instruction tests", () => {
         const forwardId2 = 200;
         const [forwardPda1, forwardBump1] = deriveForwardPda(destination.publicKey, forwardId1, program.publicKey);
         const [forwardPda2, forwardBump2] = deriveForwardPda(destination.publicKey, forwardId2, program.publicKey);
-        console.log("forwardPda1", forwardPda1.toBase58())
-        console.log("forwardPda2", forwardPda2.toBase58())
         try {
             await createForward(forwardPda1, destination.publicKey, quarantine.publicKey, payer, program, forwardId1, forwardBump1, connection);
             await createForward(forwardPda2, destination.publicKey, quarantine.publicKey, payer, program, forwardId2, forwardBump2, connection);

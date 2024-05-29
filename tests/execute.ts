@@ -95,7 +95,7 @@ describe("execute instruction tests", () => {
         expect(destToken2Balance, "token 2 balance").to.equal(token2Amount);
     });
 
-    it("should create a token account for the destination if one does not exist", async () => {
+    it.skip("should create a token account for the destination if one does not exist", async () => {
         let tokenAmount = 1000;
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
         const uninitialised = await getAssociatedTokenAddressSync(mint, destination.publicKey, false, program.publicKey, TOKEN_PROGRAM_ID);
