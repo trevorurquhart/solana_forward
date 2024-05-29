@@ -39,7 +39,6 @@ fn maybe_forward_tokens<'a>(forward: &Forward, forward_account: &AccountInfo<'a>
 }
 
 fn forward_tokens<'a>(token_program: &AccountInfo<>, forward: &Forward, forward_account: &AccountInfo<'a>, target_account: &AccountInfo<'a>, accounts_iter: &mut Iter<AccountInfo<'a>>) -> ProgramResult{
-    //TODO: Validate # of accounts we expect
     while let (Some(mint), Some(forward_ata), Some(target_ata)) = (accounts_iter.next(), accounts_iter.next(), accounts_iter.next())  {
         let result = forward_token(forward, token_program, mint, forward_account, target_account, forward_ata, target_ata);
         if result.is_err()
