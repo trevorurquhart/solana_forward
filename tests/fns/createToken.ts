@@ -15,6 +15,7 @@ export async function createATA(
     programId = TOKEN_PROGRAM_ID,
     associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID,
 ): Promise<PublicKey> {
+
     const associatedToken = getAssociatedTokenAddressSync(mint, owner, allowOwnerOffCurve, programId, associatedTokenProgramId);
     const transaction = new Transaction().add(
         createAssociatedTokenAccountIdempotentInstruction(
@@ -32,7 +33,6 @@ export async function createATA(
 
 export async function createAndFundAta(connection, payer, mint, mintAuthority, mintAmount, to)
 {
-    // Create associated token accounts for the new accounts
     const ata = await createATA(connection, payer, mint, to, true);
     await mintTo(connection, payer, mint, ata, mintAuthority, mintAmount);
     return ata;

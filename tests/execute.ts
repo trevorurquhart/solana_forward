@@ -1,10 +1,15 @@
 import {Connection, Keypair, LAMPORTS_PER_SOL,} from '@solana/web3.js';
 import {deposit, initialiseAccountWithMinimumBalance} from "./fns/accounts";
-import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
+import {createForward, deriveForwardPda, execute, executeWithTokens} from "./fns/forwardFns";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {beforeEach} from "mocha";
 import {expect} from "chai";
-import {createMint, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID} from "@solana/spl-token";
+import {
+    ASSOCIATED_TOKEN_PROGRAM_ID,
+    createMint,
+    getAssociatedTokenAddressSync,
+    TOKEN_PROGRAM_ID
+} from "@solana/spl-token";
 import {createAndFundAta} from "./fns/createToken";
 
 describe("execute instruction tests", () => {
@@ -45,7 +50,7 @@ describe("execute instruction tests", () => {
         let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
         try {
-            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+            await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
         } catch (e) {
             console.log(e)
         }
@@ -62,7 +67,7 @@ describe("execute instruction tests", () => {
         let minBalance = await connection.getMinimumBalanceForRentExemption(0);
         expect(destinationBalanceBefore).to.equal(minBalance);
 
-        await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+        await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
         const info = await connection.getTokenAccountBalance(destinationAta);
         expect(destinationBalanceBefore).to.equal(minBalance);
         expect(info.value.uiAmount).to.equal(0);
@@ -86,7 +91,7 @@ describe("execute instruction tests", () => {
         let destAtaToken2 = await createAndFundAta(connection, payer, mint2, mintAuthority2, 0, destination.publicKey);
 
         try {
-            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2, fwdAtaToken2, destAtaToken2);
+            await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2, fwdAtaToken2, destAtaToken2);
         } catch (e) {
             console.error(e);
         }
@@ -99,13 +104,13 @@ describe("execute instruction tests", () => {
         expect(destToken2Balance, "token 2 balance").to.equal(token2Amount);
     });
 
-    it.skip("should create a token account for the destination if one does not exist", async () => {
+    it("should create a token account for the destination if one does not exist", async () => {
+
         let tokenAmount = 1000;
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
-        const uninitialised = await getAssociatedTokenAddressSync(mint, destination.publicKey, false, program.publicKey, TOKEN_PROGRAM_ID);
-        console.log("uninitialised", uninitialised.toBase58())
+        const uninitialised = await getAssociatedTokenAddressSync(mint, destination.publicKey);
         try {
-            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, uninitialised);
+            await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, uninitialised);
         } catch (e) {
             console.log(e)
         }

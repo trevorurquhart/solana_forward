@@ -8,6 +8,7 @@ import {
 import {Buffer} from "buffer";
 import {toLeArray} from "./toLeArray";
 import {CreateForwardInstruction, ExecuteForwardInstruction, ForwardInstructions} from "../classes/classes";
+import {ASSOCIATED_TOKEN_PROGRAM_ID} from "@solana/spl-token";
 
 export function deriveForwardPda(destPubkey: PublicKey, id: Number, programId) {
     return PublicKey.findProgramAddressSync(
@@ -51,13 +52,38 @@ export async function createForward(
     );
 }
 
-//tokenAccounts = TOKEN_PROGRAM_ID, forwardAta1, destinationAta1, forwardAta2, destinationAta2.....
-export async function execute(payer, program, connection, forwardPda, destination, ...tokenAccounts: PublicKey[]) {
+export async function execute(payer, program, connection, forwardPda, destination) {
+
+    let ix = new TransactionInstruction({
+        keys: [
+            {pubkey: forwardPda, isSigner: false, isWritable: true},
+            {pubkey: destination.publicKey, isSigner: false, isWritable: true},
+        ],
+        programId: program.publicKey,
+        data: (
+            new ExecuteForwardInstruction({
+                instruction: ForwardInstructions.Execute,
+            })
+        ).toBuffer(),
+    });
+    await sendAndConfirmTransaction(
+        connection,
+        new Transaction().add(ix),
+        [payer]
+    );
+}
+
+//tokenAccounts = mint1, forwardAta1, destinationAta1, mint2, forwardAta2, destinationAta2.....
+export async function executeWithTokens(payer, program, connection, forwardPda, destination, token_program, ...tokenAccounts: PublicKey[]) {
 
     let tokenTransactionAccounts = tokenAccounts.map(key  => ({pubkey: key, isSigner: false, isWritable: true}));
     let keys = [
         {pubkey: forwardPda, isSigner: false, isWritable: true},
         {pubkey: destination.publicKey, isSigner: false, isWritable: true},
+        {pubkey: payer.publicKey, isSigner: true, isWritable: true},
+        {pubkey: SystemProgram.programId, isSigner: false, isWritable: false},
+        {pubkey: token_program, isSigner: false, isWritable: false},
+        {pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false},
         ...tokenTransactionAccounts,
     ];
 
@@ -75,7 +101,6 @@ export async function execute(payer, program, connection, forwardPda, destinatio
         new Transaction().add(ix),
         [payer]
     );
-
 }
 
 export async function quarantine(
@@ -85,14 +110,50 @@ export async function quarantine(
     forwardPda,
     quarantine,
     authority,
-    markAuthorityAsSigner: boolean = true,
-    ...tokenAccounts: PublicKey[]) {
+    markAuthorityAsSigner: boolean = true) {
 
-    let tokenTransactionAccounts = tokenAccounts.map(key  => ({pubkey: key, isSigner: false, isWritable: true}));
     let keys = [
         {pubkey: forwardPda, isSigner: false, isWritable: true},
         {pubkey: quarantine.publicKey, isSigner: false, isWritable: true},
         {pubkey: authority.publicKey, isSigner: markAuthorityAsSigner, isWritable: true},
+    ];
+
+    let ix = new TransactionInstruction({
+        keys: keys,
+        programId: program.publicKey,
+        data: (
+            new ExecuteForwardInstruction({
+                instruction: ForwardInstructions.Quarantine,
+            })
+        ).toBuffer(),
+    });
+    await sendAndConfirmTransaction(
+        connection,
+        new Transaction().add(ix),
+        [signer]
+    );
+}
+
+export async function quarantineWithTokens(
+    signer,
+    program,
+    connection,
+    forwardPda,
+    quarantine,
+    authority,
+    tokenProgram,
+    markAuthorityAsSigner: boolean = true,
+    ...tokenAccounts: PublicKey[]) {
+
+    let tokenTransactionAccounts = tokenAccounts.map(key => ({pubkey: key, isSigner: false, isWritable: true}));
+    let keys = [
+        {pubkey: forwardPda, isSigner: false, isWritable: true},
+        {pubkey: quarantine.publicKey, isSigner: false, isWritable: true},
+        {pubkey: authority.publicKey, isSigner: markAuthorityAsSigner, isWritable: true},
+        {pubkey: signer.publicKey, isSigner: true, isWritable: true},
+        {pubkey: SystemProgram.programId, isSigner: false, isWritable: false},
+        {pubkey: tokenProgram, isSigner: false, isWritable: false},
+        {pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false},
         ...tokenTransactionAccounts,
     ];
 
@@ -110,5 +171,4 @@ export async function quarantine(
         new Transaction().add(ix),
         [signer]
     );
-
 }

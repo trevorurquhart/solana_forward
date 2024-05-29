@@ -1,6 +1,6 @@
 import {Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram} from "@solana/web3.js";
 import {deposit, initialiseAccountWithMinimumBalance} from "./fns/accounts";
-import {createForward, deriveForwardPda, execute} from "./fns/forwardFns";
+import {createForward, deriveForwardPda, execute, executeWithTokens} from "./fns/forwardFns";
 import {expect} from "chai";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {beforeEach} from "mocha";
@@ -35,7 +35,7 @@ describe("execute validation tests", () => {
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
         try {
             let notTheTokenProgram = SystemProgram.programId;
-            await execute(payer, program, connection, forwardPda, destination, notTheTokenProgram, mint, forwardAta, destinationAta);
+            await executeWithTokens(payer, program, connection, forwardPda, destination, notTheTokenProgram, mint, forwardAta, destinationAta);
         } catch (e) {
             expect(e.message).to.contain("incorrect program id for instruction")
             return;
@@ -55,11 +55,11 @@ describe("execute validation tests", () => {
         }
     });
 
-    it("Should not transfer tokens from an invalid destination", async () => {
+    it("Should not transfer tokens from an invalid ATA", async () => {
         let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
-        let invalidDestination = Keypair.generate();
+        let invalidForwardAta = Keypair.generate();
         try {
-            await execute(payer, program, connection, forwardPda, destination,  TOKEN_PROGRAM_ID, mint, invalidDestination.publicKey, destinationAta);
+            await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, invalidForwardAta.publicKey, destinationAta);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x4")
             return;
@@ -67,12 +67,12 @@ describe("execute validation tests", () => {
         expect.fail("Should not have executed")
     });
 
-    it("Should not transfer tokens to an invalid destination", async () => {
+    it("Should not transfer tokens to an invalid ATA", async () => {
         let forwardAmount = 1000;
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
         let invalidDestination = Keypair.generate();
         try {
-            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, invalidDestination.publicKey);
+            await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, invalidDestination.publicKey);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x5")
             return;
@@ -95,7 +95,7 @@ describe("execute validation tests", () => {
         let forwardAmount = 1000;
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
         try {
-            await execute(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta);
+            await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0xa")
             return;

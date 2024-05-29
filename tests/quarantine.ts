@@ -1,6 +1,6 @@
 import {Connection, Keypair, LAMPORTS_PER_SOL,} from '@solana/web3.js';
 import {deposit, initialiseAccountWithMinimumBalance} from "./fns/accounts";
-import {createForward, deriveForwardPda, execute, quarantine} from "./fns/forwardFns";
+import {createForward, deriveForwardPda, execute, quarantine, quarantineWithTokens} from "./fns/forwardFns";
 import {createKeypairFromFile} from "./fns/createKeyPair";
 import {beforeEach} from "mocha";
 import {expect} from "chai";
@@ -72,7 +72,7 @@ describe("quarantine instruction tests", () => {
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, quarantineAmount, forwardPda);
 
         try {
-            await quarantine(payer, program, connection, forwardPda, quarantineAcc, payer, true, TOKEN_PROGRAM_ID, mint, forwardAta, quarantineAta);
+            await quarantineWithTokens(payer, program, connection, forwardPda, quarantineAcc, payer, TOKEN_PROGRAM_ID, true, mint, forwardAta, quarantineAta);
         } catch (e) {
             console.log(e)
         }
@@ -90,7 +90,7 @@ describe("quarantine instruction tests", () => {
         let minBalance = await connection.getMinimumBalanceForRentExemption(0);
         expect(quarantineBalanceBefore).to.equal(minBalance);
 
-        await quarantine(payer, program, connection, forwardPda, quarantineAcc, payer, true, TOKEN_PROGRAM_ID, mint, forwardAta, quarantineAta);
+        await quarantineWithTokens(payer, program, connection, forwardPda, quarantineAcc, payer, TOKEN_PROGRAM_ID, true, mint, forwardAta, quarantineAta);
         const info = await connection.getTokenAccountBalance(quarantineAta);
         expect(quarantineBalanceBefore).to.equal(minBalance);
         expect(info.value.uiAmount).to.equal(0);
@@ -114,7 +114,7 @@ describe("quarantine instruction tests", () => {
         let quarantineAtaToken2 = await createAndFundAta(connection, payer, mint2, mintAuthority2, 0, quarantineAcc.publicKey);
 
         try {
-            await quarantine(payer, program, connection, forwardPda, quarantineAcc, payer, true, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, quarantineAtaToken1, mint2, fwdAtaToken2, quarantineAtaToken2);
+            await quarantineWithTokens(payer, program, connection, forwardPda, quarantineAcc, payer, TOKEN_PROGRAM_ID, true, mint, fwdAtaToken1, quarantineAtaToken1, mint2, fwdAtaToken2, quarantineAtaToken2);
         } catch (e) {
             console.error(e);
         }
