@@ -55,3 +55,10 @@ $ solana balance
 # Watch local validator logs
 $ solana logs --url localhost
 ```
+
+#### Questions
+
+ - Should the transfer of sol and tokens be combined? Or should we have separate instructions? One for sol and one for tokens?
+ - Should only the forward authority be allowed to execute the forward (in theory it doesn't matter?)
+ - Token 2022 addresses are different?
+ 
