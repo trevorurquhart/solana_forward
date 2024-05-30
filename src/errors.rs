@@ -37,6 +37,12 @@ pub enum ForwardError {
 
     #[error("Invalid number of accounts")]
     InvalidNumberOfAccounts,
+
+    #[error("Overflow error")]
+    OverflowError,
+
+    #[error("Underflow error")]
+    UnderflowError,
 }
 
 impl From<ForwardError> for ProgramError {

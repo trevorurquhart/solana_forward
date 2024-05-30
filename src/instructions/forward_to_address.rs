@@ -147,12 +147,13 @@ fn forward_token<'a>(
 }
 
 fn forward_sol(forward_account: &AccountInfo, destination_account: &AccountInfo) -> ProgramResult {
+
     let rent_balance = Rent::get()?.minimum_balance(forward_account.data_len());
-    let available_sol = forward_account.lamports() - rent_balance;
+    let available_sol = forward_account.lamports().checked_sub(rent_balance).ok_or(ForwardError::UnderflowError)?;
 
     if available_sol > 0 {
-        **forward_account.try_borrow_mut_lamports()? -= available_sol;
-        **destination_account.try_borrow_mut_lamports()? += available_sol;
+        **forward_account.try_borrow_mut_lamports()? = rent_balance;
+        **destination_account.try_borrow_mut_lamports()? = destination_account.lamports().checked_add(available_sol).ok_or(ForwardError::OverflowError)?;
     }
     Ok(())
 }
