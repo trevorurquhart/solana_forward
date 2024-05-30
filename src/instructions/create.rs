@@ -96,7 +96,7 @@ fn validate(
                 SplToken2022Account::unpack(&destination_account.data.borrow()).is_err() && SplTokenAccount::unpack(&destination_account.data.borrow()).is_err(),
             ProgramError::from(ForwardError::DestinationIsAnAta))?;
 
-    assert_that("Destination is not an ATA",
+    assert_that("Quarantine is not an ATA",
                 SplToken2022Account::unpack(&quarantine_account.data.borrow()).is_err() && SplTokenAccount::unpack(&quarantine_account.data.borrow()).is_err(),
                 ProgramError::from(ForwardError::QuarantineIsAnAta))?;
 
