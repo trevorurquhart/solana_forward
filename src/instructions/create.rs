@@ -60,13 +60,13 @@ fn create_forward_account<'a>(
         instr.id.to_le_bytes().as_ref(),
         &[instr.bump]]])?;
 
-    let forward = Forward {
-        id: instr.id,
-        destination: destination_key.clone(),
-        quarantine: quarantine_key.clone(),
-        authority: payer.key.clone(),
-        bump: instr.bump,
-    };
+    let forward = Forward::new(
+        instr.id,
+        destination_key.clone(),
+        quarantine_key.clone(),
+        payer.key.clone(),
+        instr.bump,
+    );
 
     forward.serialize(&mut &mut forward_account.data.borrow_mut()[..])?;
 
