@@ -3,6 +3,7 @@ use std::slice::Iter;
 use borsh::BorshDeserialize;
 use solana_program::account_info::AccountInfo;
 use solana_program::entrypoint::ProgramResult;
+use solana_program::msg;
 use solana_program::program::{invoke, invoke_signed};
 use solana_program::program_error::ProgramError;
 use solana_program::program_pack::Pack;
@@ -39,6 +40,7 @@ fn maybe_forward_tokens<'a>(
 ) -> ProgramResult {
 
     if let (Some(signer), Some(system_program), Some(token_program), Some(ata_token)) = (accounts_iter.next(), accounts_iter.next(), accounts_iter.next(), accounts_iter.next()) {
+
         check_spl_token_program_account(token_program.key)?;
         check_system_program_account(system_program.key)?;
         assert_that("Signer is signer", signer.is_signer, ProgramError::MissingRequiredSignature)?;
@@ -62,6 +64,7 @@ fn forward_tokens<'a>(
     while let (Some(mint), Some(forward_ata), Some(target_ata)) = (accounts_iter.next(), accounts_iter.next(), accounts_iter.next()) {
         forward_token(forward, token_program, mint, forward_account, target_account, forward_ata, target_ata, signer, system_program, ata_program)?;
     }
+
     Ok(())
 }
 
@@ -141,8 +144,7 @@ fn forward_token<'a>(
             Forward::FORWARD_SEED.as_ref(),
             forward.destination.as_ref(),
             forward.id.to_le_bytes().as_ref(),
-            &[forward.bump]]])?;
-    Ok(())
+            &[forward.bump]]])
 }
 
 fn forward_sol(forward_account: &AccountInfo, destination_account: &AccountInfo) -> ProgramResult {
