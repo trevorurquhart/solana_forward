@@ -19,11 +19,12 @@ use crate::instructions::forward_to_address::{forward_to_address, validate_and_g
  *      - accounts[3] The system program account
  *      - accounts[4] The token program account
  *      - accounts[5] The associated token program account
+ *
  *      - Followed by the following 3 accounts for each mint/token to forward:
- *      - accounts[5] The mint account
- *      - accounts[6] The forward ATA account
- *      - accounts[7] The destination ATA account
-* @return Ok(()) if the instruction is executed successfully, otherwise an error
+ *      - accounts[6] The mint account
+ *      - accounts[7] The forward ATA account
+ *      - accounts[8] The destination ATA account
+ * @return Ok(()) if the instruction is executed successfully, otherwise an error
  */
 
 pub fn execute(

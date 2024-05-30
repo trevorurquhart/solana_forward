@@ -15,14 +15,15 @@ use crate::instructions::forward_to_address::{forward_to_address, validate_and_g
  *  - accounts[1] The quarantine account
  *  - accounts[2] The forward authority account
  *  - If tokens are to be quarantined, the following accounts are required
- *      - accounts[2] A signer account (will pay for the destination ata to be created if it does not exist)
- *      - accounts[3] The system program account
- *      - accounts[4] The token program account
- *      - accounts[5] The associated token program account
+ *      - accounts[3] A signer account (will pay for the destination ata to be created if it does not exist)
+ *      - accounts[4] The system program account
+ *      - accounts[5] The token program account
+ *      - accounts[6] The associated token program account
+ *
  *      - Followed by the following 3 accounts for each mint/token to quarantine:
- *      - accounts[5] The mint account
- *      - accounts[6] The forward ATA account
- *      - accounts[7] The destination ATA account
+ *      - accounts[7] The mint account
+ *      - accounts[8] The forward ATA account
+ *      - accounts[9] The destination ATA account
 * @return Ok(()) if the instruction is executed successfully, otherwise an error
  */
 
