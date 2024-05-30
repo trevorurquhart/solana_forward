@@ -4,8 +4,8 @@
     "test": "yarn run ts-mocha -p ./tsconfig.json --require ./tests/fixtures.ts -t 1000000"
   },
   "dependencies": {
-    "@solana/web3.js": "^1.47.3",
-    "@solana/spl-token": "0.3.10",
+    "@solana/spl-token": "^0.4.6",
+    "@solana/web3.js": "^1.91.8",
     "fs": "^0.0.1-security"
   },
   "devDependencies": {

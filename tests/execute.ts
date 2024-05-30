@@ -8,6 +8,7 @@ import {
     ASSOCIATED_TOKEN_PROGRAM_ID,
     createMint,
     getAssociatedTokenAddressSync,
+    TOKEN_2022_PROGRAM_ID,
     TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
 import {createAndFundAta} from "./fns/createToken";
@@ -57,6 +58,25 @@ describe("execute instruction tests", () => {
         const info = await connection.getTokenAccountBalance(destinationAta);
         expect(info.value.uiAmount).to.equal(forwardAmount);
     });
+
+    it.skip("Should transfer tokens using the token 2022 program", async() => {
+
+
+        let token2022Address = await getAssociatedTokenAddressSync(mint, destination.publicKey, false, TOKEN_2022_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID);
+        console.log("token2022Address", token2022Address.toBase58())
+        // let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey, TOKEN_2022_PROGRAM_ID);
+
+        // let forwardAmount = 1000;
+        // let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda, TOKEN_2022_PROGRAM_ID);
+        // try {
+        //     await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_2022_PROGRAM_ID, mint, forwardAta, destinationAta);
+        // } catch (e) {
+        //     console.log(e)
+        // }
+        // const info = await connection.getTokenAccountBalance(destinationAta);
+        // expect(info.value.uiAmount).to.equal(forwardAmount);
+    });
+
 
     it("Execute will not transfer sol or tokens if there are no funds", async () => {
 
