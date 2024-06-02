@@ -10,7 +10,7 @@ import {ASSOCIATED_TOKEN_PROGRAM_ID, createMint} from "@solana/spl-token";
 
 const connection = new Connection(`http://localhost:8899`, 'confirmed');
 const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
-const program = createKeypairFromFile('./target/deploy/solana_forward-keypair.json');
+const program = createKeypairFromFile('./program/target/so/solana_forward-keypair.json');
 const forwardId = 123456;
 
 let destination, quarantine, forwardPda, forwardBump;
