@@ -26,7 +26,7 @@ describe("execute validation tests", () => {
         await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
         await initialiseAccountWithMinimumBalance(connection, payer, quarantine.publicKey);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
-        await createForward(forwardPda, destination.publicKey, quarantine.publicKey, payer, program, forwardId, forwardBump, connection);
+        await createForward(forwardPda, destination.publicKey, quarantine.publicKey, payer, program, forwardId, forwardBump, connection, forwardAccount.publicKey);
     });
     //
     // it("Should error if the token program id is incorrect", async () => {
