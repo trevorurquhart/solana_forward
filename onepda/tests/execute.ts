@@ -135,4 +135,21 @@ describe("execute instruction tests", () => {
         const info = await connection.getTokenAccountBalance(uninitialised);
         expect(info.value.uiAmount).to.equal(tokenAmount);
     });
+
+    it("should deposit to a destination that has not been initialised", async() => {
+
+        const uninitialisedDestination = Keypair.generate();
+        const [newForwardPda, newForwardBump] = deriveForwardPda(uninitialisedDestination.publicKey, forwardId, program.publicKey);
+        await createForward(newForwardPda, uninitialisedDestination.publicKey, payer, program, forwardId, newForwardBump, connection);
+
+        let forwardAmount = LAMPORTS_PER_SOL / 100;
+        await deposit(connection, payer, newForwardPda, forwardAmount);
+        try {
+            await execute(payer, program, connection, newForwardPda, uninitialisedDestination)
+        } catch (e) {
+            console.log(e)
+        }
+        let destinationBalanceAfter = await connection.getBalance(uninitialisedDestination.publicKey);
+        expect(destinationBalanceAfter).to.equal(forwardAmount);
+    });
 });
