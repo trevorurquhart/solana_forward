@@ -11,9 +11,6 @@ pub enum ForwardError {
     #[error("Destination should not be an ATA")]
     DestinationIsAnAta,
 
-    #[error("Quarantine should not be an ATA")]
-    QuarantineIsAnAta,
-
     #[error("Invalid destination")]
     InvalidDestination,
 
@@ -28,12 +25,6 @@ pub enum ForwardError {
 
     #[error("Invalid forward address")]
     InvalidForwardAddress,
-
-    #[error("Quarantine not initialised")]
-    QuarantineNotInitialised,
-
-    #[error("Invalid Authority")]
-    InvalidAuthority,
 
     #[error("Invalid number of accounts")]
     InvalidNumberOfAccounts,

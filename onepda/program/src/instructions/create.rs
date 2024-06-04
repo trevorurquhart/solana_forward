@@ -7,7 +7,6 @@ use spl_token::state::Account as SplTokenAccount;
 use spl_token_2022::state::Account as SplToken2022Account;
 
 use crate::errors::{assert_that, ForwardError};
-use crate::errors::ForwardError::{DestinationNotInitialised, QuarantineNotInitialised};
 use crate::state::Forward;
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
@@ -25,13 +24,12 @@ pub fn create(
     let accounts_iter = &mut accounts.iter();
     let forward_account = next_account_info(accounts_iter)?;
     let destination_account = next_account_info(accounts_iter)?;
-    let quarantine_account = next_account_info(accounts_iter)?;
     let payer = next_account_info(accounts_iter)?;
     let system_account = next_account_info(accounts_iter)?;
 
-    validate(program_id, system_account, forward_account, destination_account, quarantine_account, &instr)
+    validate(program_id, system_account, forward_account, destination_account, &instr)
         .and_then(|_|
-            create_forward_account(&program_id, &instr, &forward_account, &payer, &system_account, &destination_account.key, quarantine_account.key))
+            create_forward_account(&program_id, &instr, &forward_account, &payer, &system_account, &destination_account.key))
 }
 
 fn create_forward_account<'a>(
@@ -40,8 +38,7 @@ fn create_forward_account<'a>(
     forward_account: &AccountInfo<'a>,
     payer: &AccountInfo<'a>,
     system_account: &AccountInfo<'a>,
-    destination_key: &Pubkey,
-    quarantine_key: &Pubkey
+    destination_key: &Pubkey
 ) -> ProgramResult {
 
     invoke_signed(&system_instruction::create_account(
@@ -63,8 +60,6 @@ fn create_forward_account<'a>(
     let forward = Forward::new(
         instr.id,
         destination_key.clone(),
-        quarantine_key.clone(),
-        payer.key.clone(),
         instr.bump,
     );
 
@@ -78,13 +73,10 @@ fn validate(
     system_account: &AccountInfo,
     forward_account: &AccountInfo,
     destination_account: &AccountInfo,
-    quarantine_account: &AccountInfo,
     instr: &CreateForwardInstruction
 ) -> ProgramResult {
 
     assert_that("System program is correct", system_account.key == &solana_program::system_program::id(), ProgramError::IncorrectProgramId)?;
-    assert_that("Destination is initialised", destination_account.lamports() > 0, ProgramError::from(DestinationNotInitialised))?;
-    assert_that("Quarantine is initialised", quarantine_account.lamports() > 0, ProgramError::from(QuarantineNotInitialised))?;
 
     //TODO - is the 2nd condition necessary?
     assert_that("Forward does not exist",
@@ -95,10 +87,6 @@ fn validate(
     assert_that("Destination is not an ATA",
                 SplToken2022Account::unpack(&destination_account.data.borrow()).is_err() && SplTokenAccount::unpack(&destination_account.data.borrow()).is_err(),
             ProgramError::from(ForwardError::DestinationIsAnAta))?;
-
-    assert_that("Quarantine is not an ATA",
-                SplToken2022Account::unpack(&quarantine_account.data.borrow()).is_err() && SplTokenAccount::unpack(&quarantine_account.data.borrow()).is_err(),
-                ProgramError::from(ForwardError::QuarantineIsAnAta))?;
 
     let forward_pda_check =
         Pubkey::create_program_address(&[Forward::FORWARD_SEED.as_ref(), destination_account.key.as_ref(), instr.id.to_le_bytes().as_ref(), &[instr.bump]], program_id);

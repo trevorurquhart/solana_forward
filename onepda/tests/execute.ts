@@ -21,16 +21,14 @@ describe("execute instruction tests", () => {
     const mintAuthority = Keypair.generate();
     const forwardId = 123456;
 
-    let destination, quarantine, mint, forwardPda, forwardBump;
+    let destination, mint, forwardPda, forwardBump;
 
     beforeEach("setup", async () => {
         destination = Keypair.generate();
-        quarantine = Keypair.generate();
         await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
-        await initialiseAccountWithMinimumBalance(connection, payer, quarantine.publicKey);
         mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
-        await createForward(forwardPda, destination.publicKey, quarantine.publicKey, payer, program, forwardId, forwardBump, connection);
+        await createForward(forwardPda, destination.publicKey, payer, program, forwardId, forwardBump, connection);
     });
 
     it("Should transfer sol when executed", async () => {

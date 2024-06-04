@@ -12,21 +12,19 @@ const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/i
 const program = createKeypairFromFile('./program/target/so/solana_forward-keypair.json');
 const forwardId = 123456;
 
-let destination, quarantine, forwardPda, forwardBump, mint, mintAuthority;
+let destination, forwardPda, forwardBump, mint, mintAuthority;
 
 describe("execute validation tests", () => {
 
     beforeEach("setup", async () => {
         destination = Keypair.generate();
-        quarantine = Keypair.generate();
         mintAuthority = Keypair.generate();
 
         mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
 
         await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
-        await initialiseAccountWithMinimumBalance(connection, payer, quarantine.publicKey);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
-        await createForward(forwardPda, destination.publicKey, quarantine.publicKey, payer, program, forwardId, forwardBump, connection);
+        await createForward(forwardPda, destination.publicKey, payer, program, forwardId, forwardBump, connection);
     });
 
     it("Should error if the token program id is incorrect", async () => {
@@ -51,7 +49,7 @@ describe("execute validation tests", () => {
             await execute(payer, program, connection, forwardPda, invalidDestination)
             expect.fail("Should not have executed")
         } catch (e) {
-            expect(e.message).to.contain("custom program error: 0x3")
+            expect(e.message).to.contain("custom program error: 0x2")
         }
     });
 
@@ -61,7 +59,7 @@ describe("execute validation tests", () => {
         try {
             await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, invalidForwardAta.publicKey, destinationAta);
         } catch (e) {
-            expect(e.message).to.contain("custom program error: 0x4")
+            expect(e.message).to.contain("custom program error: 0x3")
             return;
         }
         expect.fail("Should not have executed")
@@ -74,7 +72,7 @@ describe("execute validation tests", () => {
         try {
             await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, invalidDestination.publicKey);
         } catch (e) {
-            expect(e.message).to.contain("custom program error: 0x5")
+            expect(e.message).to.contain("custom program error: 0x4")
             return;
         }
         expect.fail("Should not have executed")
@@ -97,7 +95,7 @@ describe("execute validation tests", () => {
         try {
             await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta);
         } catch (e) {
-            expect(e.message).to.contain("custom program error: 0xa")
+            expect(e.message).to.contain("custom program error: 0x7")
             return;
         }
         expect.fail("Should not have executed")

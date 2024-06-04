@@ -26,8 +26,6 @@ $ yarn
 $ yarn run tests
 # specific test suite/test name
 $ yarn run tests -g "quarantine instruction tests"
-# test file
-$ yarn run test tests/quarantine.ts
 
 
 ````

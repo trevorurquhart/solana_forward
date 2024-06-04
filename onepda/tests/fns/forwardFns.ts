@@ -20,7 +20,6 @@ export function deriveForwardPda(destPubkey: PublicKey, id: Number, programId) {
 export async function createForward(
     forwardPda,
     desintationPublicKey: PublicKey,
-    quarantinePublicKey: PublicKey,
     payer,
     program,
     forwardId,
@@ -32,7 +31,6 @@ export async function createForward(
         keys: [
             {pubkey: forwardPda, isSigner: false, isWritable: true},
             {pubkey: desintationPublicKey, isSigner: false, isWritable: false},
-            {pubkey: quarantinePublicKey, isSigner: false, isWritable: false},
             {pubkey: payer.publicKey, isSigner: true, isWritable: true},
             {pubkey: systemProgram, isSigner: false, isWritable: false}
         ],
