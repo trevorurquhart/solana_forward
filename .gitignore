@@ -3,3 +3,4 @@
 /node_modules/
 /onepda/test-ledger/
 /onepda/program/target/
+/childpda/program/target/

@@ -1,0 +1,20 @@
+{
+  "scripts": {
+    "tests": "yarn run ts-mocha -p tsconfig.json --require tests/fixtures.ts -t 1000000 ./tests/*.ts",
+    "test": "yarn run ts-mocha -p tsconfig.json --require tests/fixtures.ts -t 1000000"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.4.6",
+    "@solana/web3.js": "^1.91.8",
+    "fs": "^0.0.1-security"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0",
+    "@types/chai": "^4.3.1",
+    "@types/mocha": "^9.1.1",
+    "chai": "^4.3.4",
+    "mocha": "^9.0.3",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^4.3.5"
+  }
+}
