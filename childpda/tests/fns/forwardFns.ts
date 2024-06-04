@@ -51,11 +51,11 @@ export async function createForward(
     );
 }
 
-export async function execute(payer, program, connection, forwardAccount, forwardPda, destination) {
+export async function execute(payer, program, connection, forwardAccountPublicKey, forwardPda, destination) {
 
     let ix = new TransactionInstruction({
         keys: [
-            {pubkey: forwardAccount.publicKey, isSigner: false, isWritable: true},
+            {pubkey: forwardAccountPublicKey, isSigner: false, isWritable: true},
             {pubkey: forwardPda, isSigner: false, isWritable: true},
             {pubkey: destination.publicKey, isSigner: false, isWritable: true},
             {pubkey: SystemProgram.programId, isSigner: false, isWritable: false},
@@ -75,11 +75,11 @@ export async function execute(payer, program, connection, forwardAccount, forwar
 }
 
 //tokenAccounts = mint1, forwardAta1, destinationAta1, mint2, forwardAta2, destinationAta2.....
-export async function executeWithTokens(payer, program, connection, forwardAccount, forwardPda, destination, token_program, ...tokenAccounts: PublicKey[]) {
+export async function executeWithTokens(payer, program, connection, forwardAccountPublicKey, forwardPda, destination, token_program, ...tokenAccounts: PublicKey[]) {
 
     let tokenTransactionAccounts = tokenAccounts.map(key  => ({pubkey: key, isSigner: false, isWritable: true}));
     let keys = [
-        {pubkey: forwardAccount.publicKey, isSigner: false, isWritable: true},
+        {pubkey: forwardAccountPublicKey, isSigner: false, isWritable: true},
         {pubkey: forwardPda, isSigner: false, isWritable: true},
         {pubkey: destination.publicKey, isSigner: false, isWritable: true},
         {pubkey: SystemProgram.programId, isSigner: false, isWritable: false},

@@ -38,7 +38,7 @@ describe("execute instruction tests", () => {
 
         let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
         try {
-            await execute(payer, program, connection, forwardAccount, forwardPda, destination)
+            await execute(payer, program, connection, forwardAccount.publicKey, forwardPda, destination)
         } catch (e) {
             console.log(e)
         }
@@ -52,7 +52,7 @@ describe("execute instruction tests", () => {
         let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
         try {
-            await executeWithTokens(payer, program, connection, forwardAccount, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+            await executeWithTokens(payer, program, connection, forwardAccount.publicKey, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
         } catch (e) {
             console.log(e)
             expect.fail("Should have executed");
@@ -92,7 +92,7 @@ describe("execute instruction tests", () => {
         const forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, forwardPda);
 
         try {
-            await executeWithTokens(payer, program, connection, forwardAccount, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+            await executeWithTokens(payer, program, connection, forwardAccount.publicKey, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
         } catch (e) {
             console.log(e)
             expect.fail("Should have executed");
@@ -124,7 +124,7 @@ describe("execute instruction tests", () => {
 
 
         try {
-            await executeWithTokens(payer, program, connection, forwardAccount, forwardPda, destination, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2, fwdAtaToken2, destAtaToken2);
+            await executeWithTokens(payer, program, connection, forwardAccount.publicKey, forwardPda, destination, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2, fwdAtaToken2, destAtaToken2);
         } catch (e) {
             console.error(e);
         }
@@ -143,7 +143,7 @@ describe("execute instruction tests", () => {
         let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
         const uninitialised = await getAssociatedTokenAddressSync(mint, destination.publicKey);
         try {
-            await executeWithTokens(payer, program, connection, forwardAccount, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, uninitialised);
+            await executeWithTokens(payer, program, connection, forwardAccount.publicKey, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, uninitialised);
         } catch (e) {
             console.log(e)
         }
