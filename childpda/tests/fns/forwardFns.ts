@@ -20,13 +20,13 @@ export function deriveForwardPda(forwardPubkey: PublicKey, programId) {
 
 export async function createForward(
     forwardAccount,
-    forwardPda,
     destinationPublicKey: PublicKey,
-    payer,
-    program,
     forwardBump,
+    forwardPda,
+    program,
+    payer,
     connection,
-    systemProgram: any | PublicKey = SystemProgram.programId) {
+    systemProgram: any = SystemProgram.programId) {
 
     let ix = new TransactionInstruction({
         keys: [
@@ -51,7 +51,7 @@ export async function createForward(
     );
 }
 
-export async function execute(payer, program, connection, forwardAccountPublicKey, forwardPda, destination) {
+export async function execute(forwardPda, destination, forwardAccountPublicKey, program, payer, connection) {
 
     let ix = new TransactionInstruction({
         keys: [
@@ -75,7 +75,7 @@ export async function execute(payer, program, connection, forwardAccountPublicKe
 }
 
 //tokenAccounts = mint1, forwardAta1, destinationAta1, mint2, forwardAta2, destinationAta2.....
-export async function executeWithTokens(payer, program, connection, forwardAccountPublicKey, forwardPda, destination, token_program, ...tokenAccounts: PublicKey[]) {
+export async function executeWithTokens(forwardPda, destination, forwardAccountPublicKey, program, payer, connection, token_program, ...tokenAccounts: PublicKey[]) {
 
     let tokenTransactionAccounts = tokenAccounts.map(key  => ({pubkey: key, isSigner: false, isWritable: true}));
     let keys = [

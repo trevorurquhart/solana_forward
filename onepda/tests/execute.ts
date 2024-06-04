@@ -25,18 +25,18 @@ describe("execute instruction tests", () => {
 
     beforeEach("setup", async () => {
         destination = Keypair.generate();
-        await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
+        await initialiseAccountWithMinimumBalance(destination.publicKey, payer, connection);
         mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
-        await createForward(forwardPda, destination.publicKey, payer, program, forwardId, forwardBump, connection);
+        await createForward(forwardId, destination.publicKey, forwardBump, forwardPda, program, payer, connection);
     });
 
     it("Should transfer sol when executed", async () => {
         let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
         let forwardAmount = LAMPORTS_PER_SOL / 100;
-        await deposit(connection, payer, forwardPda, forwardAmount);
+        await deposit(payer, forwardPda, forwardAmount, connection);
         try {
-            await execute(payer, program, connection, forwardPda, destination)
+            await execute(forwardPda, destination, program, payer, connection)
         } catch (e) {
             console.log(e)
         }
@@ -46,10 +46,10 @@ describe("execute instruction tests", () => {
 
     it("Should transfer tokens when executed", async () => {
         let forwardAmount = 1000;
-        let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
-        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
+        let destinationAta = await createAndFundAta(mint, destination.publicKey, 0, payer, mintAuthority, connection);
+        let forwardAta = await createAndFundAta(mint, forwardPda, forwardAmount, payer, mintAuthority, connection);
         try {
-            await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+            await executeWithTokens(forwardPda, destination, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
         } catch (e) {
             console.log(e)
         }
@@ -79,13 +79,13 @@ describe("execute instruction tests", () => {
     it("Execute will not transfer sol or tokens if there are no funds", async () => {
 
         let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
-        let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
-        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, forwardPda);
+        let destinationAta = await createAndFundAta(mint, destination.publicKey, 0, payer, mintAuthority, connection);
+        let forwardAta = await createAndFundAta(mint, forwardPda, 0, payer, mintAuthority, connection);
 
         let minBalance = await connection.getMinimumBalanceForRentExemption(0);
         expect(destinationBalanceBefore).to.equal(minBalance);
 
-        await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+        await executeWithTokens(forwardPda, destination, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
         const info = await connection.getTokenAccountBalance(destinationAta);
         expect(destinationBalanceBefore).to.equal(minBalance);
         expect(info.value.uiAmount).to.equal(0);
@@ -101,15 +101,15 @@ describe("execute instruction tests", () => {
 
         const destSolBalanceBefore = await connection.getBalance(destination.publicKey);
 
-        await deposit(connection, payer, forwardPda, solAmount);
-        let fwdAtaToken1 = await createAndFundAta(connection, payer, mint, mintAuthority, token1Amount, forwardPda);
-        let fwdAtaToken2 = await createAndFundAta(connection, payer, mint2, mintAuthority2, token2Amount, forwardPda);
+        await deposit(payer, forwardPda, solAmount, connection);
+        let fwdAtaToken1 = await createAndFundAta(mint, forwardPda, token1Amount, payer, mintAuthority, connection);
+        let fwdAtaToken2 = await createAndFundAta(mint2, forwardPda, token2Amount, payer, mintAuthority2, connection);
 
-        let destAtaToken1 = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
-        let destAtaToken2 = await createAndFundAta(connection, payer, mint2, mintAuthority2, 0, destination.publicKey);
+        let destAtaToken1 = await createAndFundAta(mint, destination.publicKey, 0, payer, mintAuthority, connection);
+        let destAtaToken2 = await createAndFundAta(mint2, destination.publicKey, 0, payer, mintAuthority2, connection);
 
         try {
-            await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2, fwdAtaToken2, destAtaToken2);
+            await executeWithTokens(forwardPda, destination, program, payer, connection, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2, fwdAtaToken2, destAtaToken2);
         } catch (e) {
             console.error(e);
         }
@@ -125,10 +125,10 @@ describe("execute instruction tests", () => {
     it("should create a token account for the destination if one does not exist", async () => {
 
         let tokenAmount = 1000;
-        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
+        let forwardAta = await createAndFundAta(mint, forwardPda, tokenAmount, payer, mintAuthority, connection);
         const uninitialised = await getAssociatedTokenAddressSync(mint, destination.publicKey);
         try {
-            await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, uninitialised);
+            await executeWithTokens(forwardPda, destination, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, uninitialised);
         } catch (e) {
             console.log(e)
         }
@@ -140,12 +140,12 @@ describe("execute instruction tests", () => {
 
         const uninitialisedDestination = Keypair.generate();
         const [newForwardPda, newForwardBump] = deriveForwardPda(uninitialisedDestination.publicKey, forwardId, program.publicKey);
-        await createForward(newForwardPda, uninitialisedDestination.publicKey, payer, program, forwardId, newForwardBump, connection);
+        await createForward(forwardId, uninitialisedDestination.publicKey, newForwardBump, newForwardPda, program, payer, connection);
 
         let forwardAmount = LAMPORTS_PER_SOL / 100;
-        await deposit(connection, payer, newForwardPda, forwardAmount);
+        await deposit(payer, newForwardPda, forwardAmount, connection);
         try {
-            await execute(payer, program, connection, newForwardPda, uninitialisedDestination)
+            await execute(newForwardPda, uninitialisedDestination, program, payer, connection)
         } catch (e) {
             console.log(e)
         }

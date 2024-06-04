@@ -27,18 +27,18 @@ describe("execute instruction tests", () => {
         forwardAccount = Keypair.generate();
         mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
         [forwardPda, forwardBump] = deriveForwardPda(forwardAccount.publicKey, program.publicKey);
-        await createForward(forwardAccount, forwardPda, destination.publicKey, payer, program, forwardBump, connection, );
+        await createForward(forwardAccount, destination.publicKey, forwardBump, forwardPda, program, payer, connection);
     });
 
     it("Should transfer sol when executed", async () => {
 
         let forwardAmount = LAMPORTS_PER_SOL / 100;
-        await deposit(connection, payer, destination.publicKey, LAMPORTS_PER_SOL * 3)
-        await deposit(connection, payer, forwardPda, forwardAmount);
+        await deposit(payer, destination.publicKey, LAMPORTS_PER_SOL * 3, connection)
+        await deposit(payer, forwardPda, forwardAmount, connection);
 
         let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
         try {
-            await execute(payer, program, connection, forwardAccount.publicKey, forwardPda, destination)
+            await execute(forwardPda, destination, forwardAccount.publicKey, program, payer, connection)
         } catch (e) {
             console.log(e)
         }
@@ -49,10 +49,10 @@ describe("execute instruction tests", () => {
 
     it("Should transfer tokens when executed", async () => {
         let forwardAmount = 1000;
-        let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
-        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda);
+        let destinationAta = await createAndFundAta(mint, destination.publicKey, 0, payer, mintAuthority, connection);
+        let forwardAta = await createAndFundAta(mint, forwardPda, forwardAmount, payer, mintAuthority, connection);
         try {
-            await executeWithTokens(payer, program, connection, forwardAccount.publicKey, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
         } catch (e) {
             console.log(e)
             expect.fail("Should have executed");
@@ -86,13 +86,13 @@ describe("execute instruction tests", () => {
         let destinationTokenBalanceBefore = 1000;
         let destinationSolBalanceBefore = LAMPORTS_PER_SOL/ 200;
 
-        await deposit(connection, payer, destination.publicKey, destinationSolBalanceBefore);
-        let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, destinationTokenBalanceBefore, destination.publicKey);
+        await deposit(payer, destination.publicKey, destinationSolBalanceBefore, connection);
+        let destinationAta = await createAndFundAta(mint, destination.publicKey, destinationTokenBalanceBefore, payer, mintAuthority, connection);
 
-        const forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, forwardPda);
+        const forwardAta = await createAndFundAta(mint, forwardPda, 0, payer, mintAuthority, connection);
 
         try {
-            await executeWithTokens(payer, program, connection, forwardAccount.publicKey, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
         } catch (e) {
             console.log(e)
             expect.fail("Should have executed");
@@ -115,16 +115,16 @@ describe("execute instruction tests", () => {
         let token1Amount = 300;
         let token2Amount = 400;
 
-        await deposit(connection, payer, forwardPda, solAmount);
-        let fwdAtaToken1 = await createAndFundAta(connection, payer, mint, mintAuthority, token1Amount, forwardPda);
-        let fwdAtaToken2 = await createAndFundAta(connection, payer, mint2, mintAuthority2, token2Amount, forwardPda);
+        await deposit(payer, forwardPda, solAmount, connection);
+        let fwdAtaToken1 = await createAndFundAta(mint, forwardPda, token1Amount, payer, mintAuthority, connection);
+        let fwdAtaToken2 = await createAndFundAta(mint2, forwardPda, token2Amount, payer, mintAuthority2, connection);
 
         const destAtaToken1 = await getAssociatedTokenAddressSync(mint, destination.publicKey);
         const destAtaToken2 = await getAssociatedTokenAddressSync(mint2, destination.publicKey);
 
 
         try {
-            await executeWithTokens(payer, program, connection, forwardAccount.publicKey, forwardPda, destination, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2, fwdAtaToken2, destAtaToken2);
+            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2, fwdAtaToken2, destAtaToken2);
         } catch (e) {
             console.error(e);
         }
@@ -140,10 +140,10 @@ describe("execute instruction tests", () => {
     it("should create a token account for the destination if one does not exist", async () => {
 
         let tokenAmount = 1000;
-        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
+        let forwardAta = await createAndFundAta(mint, forwardPda, tokenAmount, payer, mintAuthority, connection);
         const uninitialised = await getAssociatedTokenAddressSync(mint, destination.publicKey);
         try {
-            await executeWithTokens(payer, program, connection, forwardAccount.publicKey, forwardPda, destination, TOKEN_PROGRAM_ID, mint, forwardAta, uninitialised);
+            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, uninitialised);
         } catch (e) {
             console.log(e)
         }

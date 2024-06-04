@@ -18,14 +18,14 @@ export function deriveForwardPda(destPubkey: PublicKey, id: Number, programId) {
 }
 
 export async function createForward(
-    forwardPda,
-    desintationPublicKey: PublicKey,
-    payer,
-    program,
     forwardId,
+    desintationPublicKey: PublicKey,
     forwardBump,
+    forwardPda,
+    program,
+    payer,
     connection,
-    systemProgram: any | PublicKey = SystemProgram.programId) {
+    systemProgram: any = SystemProgram.programId) {
 
     let ix = new TransactionInstruction({
         keys: [
@@ -50,7 +50,7 @@ export async function createForward(
     );
 }
 
-export async function execute(payer, program, connection, forwardPda, destination) {
+export async function execute(forwardPda, destination, program, payer, connection) {
 
     let ix = new TransactionInstruction({
         keys: [
@@ -72,7 +72,7 @@ export async function execute(payer, program, connection, forwardPda, destinatio
 }
 
 //tokenAccounts = mint1, forwardAta1, destinationAta1, mint2, forwardAta2, destinationAta2.....
-export async function executeWithTokens(payer, program, connection, forwardPda, destination, token_program, ...tokenAccounts: PublicKey[]) {
+export async function executeWithTokens(forwardPda, destination, program, payer, connection, token_program, ...tokenAccounts: PublicKey[]) {
 
     let tokenTransactionAccounts = tokenAccounts.map(key  => ({pubkey: key, isSigner: false, isWritable: true}));
     let keys = [
@@ -101,72 +101,3 @@ export async function executeWithTokens(payer, program, connection, forwardPda, 
     );
 }
 
-export async function quarantine(
-    signer,
-    program,
-    connection,
-    forwardPda,
-    quarantine,
-    authority,
-    markAuthorityAsSigner: boolean = true) {
-
-    let keys = [
-        {pubkey: forwardPda, isSigner: false, isWritable: true},
-        {pubkey: quarantine.publicKey, isSigner: false, isWritable: true},
-        {pubkey: authority.publicKey, isSigner: markAuthorityAsSigner, isWritable: true},
-    ];
-
-    let ix = new TransactionInstruction({
-        keys: keys,
-        programId: program.publicKey,
-        data: (
-            new ExecuteForwardInstruction({
-                instruction: ForwardInstructions.Quarantine,
-            })
-        ).toBuffer(),
-    });
-    await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(ix),
-        [signer]
-    );
-}
-
-export async function quarantineWithTokens(
-    signer,
-    program,
-    connection,
-    forwardPda,
-    quarantine,
-    authority,
-    tokenProgram,
-    markAuthorityAsSigner: boolean = true,
-    ...tokenAccounts: PublicKey[]) {
-
-    let tokenTransactionAccounts = tokenAccounts.map(key => ({pubkey: key, isSigner: false, isWritable: true}));
-    let keys = [
-        {pubkey: forwardPda, isSigner: false, isWritable: true},
-        {pubkey: quarantine.publicKey, isSigner: false, isWritable: true},
-        {pubkey: authority.publicKey, isSigner: markAuthorityAsSigner, isWritable: true},
-        {pubkey: signer.publicKey, isSigner: true, isWritable: true},
-        {pubkey: SystemProgram.programId, isSigner: false, isWritable: false},
-        {pubkey: tokenProgram, isSigner: false, isWritable: false},
-        {pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false},
-        ...tokenTransactionAccounts,
-    ];
-
-    let ix = new TransactionInstruction({
-        keys: keys,
-        programId: program.publicKey,
-        data: (
-            new ExecuteForwardInstruction({
-                instruction: ForwardInstructions.Quarantine,
-            })
-        ).toBuffer(),
-    });
-    await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(ix),
-        [signer]
-    );
-}

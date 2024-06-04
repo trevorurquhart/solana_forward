@@ -6,11 +6,11 @@ import {
 } from "@solana/spl-token";
 
 export async function createATA(
-    connection: Connection,
-    payer: Signer,
     mint: PublicKey,
     owner: PublicKey,
     allowOwnerOffCurve: boolean = false,
+    payer: Signer,
+    connection: Connection,
     confirmOptions?: ConfirmOptions,
     programId = TOKEN_PROGRAM_ID,
     associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -31,9 +31,9 @@ export async function createATA(
     return associatedToken;
 }
 
-export async function createAndFundAta(connection, payer, mint, mintAuthority, mintAmount, to)
+export async function createAndFundAta(mint, to, mintAmount, payer, mintAuthority, connection)
 {
-    const ata = await createATA(connection, payer, mint, to, true);
+    const ata = await createATA(mint, to, true, payer, connection);
     await mintTo(connection, payer, mint, ata, mintAuthority, mintAmount);
     return ata;
 }

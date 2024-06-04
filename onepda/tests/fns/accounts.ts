@@ -1,10 +1,10 @@
 import * as web3 from "@solana/web3.js";
 
 export async function deposit(
-    connection,
     from,
     to,
-    depositAmount) {
+    depositAmount,
+    connection) {
 
     const transaction = new web3.Transaction().add(
         web3.SystemProgram.transfer({
@@ -21,12 +21,12 @@ export async function deposit(
 }
 
 export async function initialiseAccountWithMinimumBalance(
-    connection,
+    account,
     payer,
-    to
+    connection
 )
 {
     const minumumBalance = await connection.getMinimumBalanceForRentExemption(0);
-    await deposit(connection, payer, to, minumumBalance);
+    await deposit(payer, account, minumumBalance, connection);
 }
 

@@ -17,7 +17,7 @@ let destination, forwardPda, forwardBump;
 
 beforeEach("setup", async () => {
     destination = Keypair.generate();
-    await initialiseAccountWithMinimumBalance(connection, payer, destination.publicKey);
+    await initialiseAccountWithMinimumBalance(destination.publicKey, payer, connection);
 });
 
 describe("create instruction tests", () => {
@@ -26,7 +26,7 @@ describe("create instruction tests", () => {
 
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
         try {
-            await createForward(forwardPda, destination.publicKey, payer, program, forwardId, forwardBump, connection);
+            await createForward(forwardId, destination.publicKey, forwardBump, forwardPda, program, payer, connection);
         } catch (e) {
             expect.fail("Should have created forward");
             return;
@@ -43,13 +43,13 @@ describe("create instruction tests", () => {
     it("Should not create forward if already exists", async () => {
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
         try {
-            await createForward(forwardPda, destination.publicKey, payer, program, forwardId, forwardBump, connection);
+            await createForward(forwardId, destination.publicKey, forwardBump, forwardPda, program, payer, connection);
         } catch (e) {
             expect.fail("Should have created forward");
             return;
         }
         try {
-            await createForward(forwardPda, destination.publicKey, payer, program, forwardId, forwardBump, connection);
+            await createForward(forwardId, destination.publicKey, forwardBump, forwardPda, program, payer, connection);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x5")
             return;
@@ -62,8 +62,8 @@ describe("create instruction tests", () => {
         const [forwardPda1, forwardBump1] = deriveForwardPda(destination.publicKey, forwardId1, program.publicKey);
         const [forwardPda2, forwardBump2] = deriveForwardPda(destination.publicKey, forwardId2, program.publicKey);
         try {
-            await createForward(forwardPda1, destination.publicKey, payer, program, forwardId1, forwardBump1, connection);
-            await createForward(forwardPda2, destination.publicKey, payer, program, forwardId2, forwardBump2, connection);
+            await createForward(forwardId1, destination.publicKey, forwardBump1, forwardPda1, program, payer, connection);
+            await createForward(forwardId2, destination.publicKey, forwardBump2, forwardPda2, program, payer, connection);
         } catch (e) {
             console.log(e)
             expect.fail("Should have created forward");
@@ -80,10 +80,10 @@ describe("create instruction tests", () => {
     it("The destination account should not be an ATA", async () => {
         const mintAuthority = Keypair.generate();
         const mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
-        let destAtaToken1 = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey);
+        let destAtaToken1 = await createAndFundAta(mint, destination.publicKey, 0, payer, mintAuthority, connection);
         const [forwardToTokenPda, forwardBump] = deriveForwardPda(destAtaToken1, forwardId, program.publicKey);
         try {
-            await createForward(forwardToTokenPda, destAtaToken1, payer, program, forwardId, forwardBump, connection);
+            await createForward(forwardId, destAtaToken1, forwardBump, forwardToTokenPda, program, payer, connection);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x1")
             return;
@@ -94,11 +94,11 @@ describe("create instruction tests", () => {
 
     it("Should fail to re-initialise the forward with a different destination", async () => {
         [forwardPda, forwardBump] = deriveForwardPda(destination.publicKey, forwardId, program.publicKey);
-        await createForward(forwardPda, destination.publicKey, payer, program, forwardId, forwardBump, connection);
+        await createForward(forwardId, destination.publicKey, forwardBump, forwardPda, program, payer, connection);
         const bogusDestination = Keypair.generate();
-        await initialiseAccountWithMinimumBalance(connection, payer, bogusDestination.publicKey);
+        await initialiseAccountWithMinimumBalance(bogusDestination.publicKey, payer, connection);
         try {
-            await createForward(forwardPda, bogusDestination.publicKey, payer, program, forwardId, forwardBump, connection);
+            await createForward(forwardId, bogusDestination.publicKey, forwardBump, forwardPda, program, payer, connection);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x5")
             return;
@@ -109,7 +109,7 @@ describe("create instruction tests", () => {
     it("Should error if the forward pda does not match the derived pda", async () => {
         const bogusPda = Keypair.generate();
         try {
-            await createForward(bogusPda.publicKey, destination.publicKey, payer, program, forwardId, forwardBump, connection);
+            await createForward(forwardId, destination.publicKey, forwardBump, bogusPda.publicKey, program, payer, connection);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x6");
             return;
@@ -121,14 +121,7 @@ describe("create instruction tests", () => {
         // noinspection UnnecessaryLocalVariableJS
         const bogusSystemProgram = ASSOCIATED_TOKEN_PROGRAM_ID;
         try {
-            await createForward(forwardPda,
-                destination.publicKey,
-                payer,
-                program,
-                forwardId,
-                forwardBump,
-                connection,
-                bogusSystemProgram);
+            await createForward(forwardId, destination.publicKey, forwardBump, forwardPda, program, payer, connection, bogusSystemProgram);
         } catch (e) {
             expect(e.message).to.contain("incorrect program id for instruction")
             return;
@@ -139,7 +132,7 @@ describe("create instruction tests", () => {
     it("Should deposit to forward", async () => {
         let depositAmount = LAMPORTS_PER_SOL/100;
         let balanceBefore = await connection.getBalance(forwardPda);
-        await deposit(connection, payer, forwardPda, depositAmount);
+        await deposit(payer, forwardPda, depositAmount, connection);
         let balanceAfter = await connection.getBalance(forwardPda);
         expect(balanceAfter - balanceBefore).to.equal(depositAmount);
     });
@@ -148,7 +141,7 @@ describe("create instruction tests", () => {
         const mintAuthority = Keypair.generate();
         const mint = await createMint(connection, payer, mintAuthority.publicKey, null, 0);
         let tokenAmount = 1000;
-        let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, tokenAmount, forwardPda);
+        let forwardAta = await createAndFundAta(mint, forwardPda, tokenAmount, payer, mintAuthority, connection);
         const info = await connection.getTokenAccountBalance(forwardAta);
         expect(info.value.uiAmount).to.equal(tokenAmount);
     });
