@@ -29,7 +29,6 @@ const ForwardSchema = new Map([
         fields: [
             ['destination', [32]],
             ['forwardPda', [32]],
-            ['authority', [32]],
             ['bump', 'u8']
         ],
     }]

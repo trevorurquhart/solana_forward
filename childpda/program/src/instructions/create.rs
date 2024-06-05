@@ -57,8 +57,7 @@ fn create_forward_account<'a>(
 
     let forward = Forward::new(
         destination_key.clone(),
-        instr.forward_pda.clone(),
-        payer.key.clone(),
+        instr.forward_pda,
         instr.bump,
     );
 

@@ -37,7 +37,6 @@ describe("create instruction tests", () => {
 
         expect(new PublicKey(fwd.destination), "destination").to.deep.equal(destination.publicKey);
         expect(new PublicKey(fwd.forwardPda), "forward account").to.deep.equal(forwardPda);
-        expect(new PublicKey(fwd.authority), "auhority").to.deep.equal(payer.publicKey);
         expect(fwd.bump).to.equal(forwardBump);
     });
 
@@ -78,12 +77,10 @@ describe("create instruction tests", () => {
 
         expect(new PublicKey(fwd1.destination), "destination").to.deep.equal(destination.publicKey);
         expect(new PublicKey(fwd1.forwardPda), "forward account").to.deep.equal(forwardPda1);
-        expect(new PublicKey(fwd1.authority), "auhority").to.deep.equal(payer.publicKey);
         expect(fwd1.bump).to.equal(forwardBump1);
 
         expect(new PublicKey(fwd2.destination), "destination").to.deep.equal(destination.publicKey);
         expect(new PublicKey(fwd2.forwardPda), "forward account").to.deep.equal(forwardPda2);
-        expect(new PublicKey(fwd2.authority), "auhority").to.deep.equal(payer.publicKey);
         expect(fwd2.bump).to.equal(forwardBump2);
 
     });

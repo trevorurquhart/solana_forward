@@ -70,7 +70,7 @@ pub fn execute(
     check_system_program_account(system_program.key)?;
     let forward = validate_and_get_forward(program_id, &forward_account)?;
     assert_that("Destination is valid", *destination_account.key == forward.destination, ProgramError::from(ForwardError::InvalidDestination))?;
-
+    assert_that("Forward pda belongs to this account", &forward.forward_pda == forward_pda.key, ProgramError::from(ForwardError::InvalidForwardAddress))?;
 
     maybe_forward_tokens(&forward, forward_account, forward_pda, destination_account, system_program, accounts_iter)
         .and_then(|_|

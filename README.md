@@ -78,25 +78,25 @@ This has been coded 2 different ways:
  - Leaves the minimum rent in the pda
  - Moving sol can be done in the program as the program owns the pda 
 
-#### Compute costs:
+#### Compute costs (rough - no optimisation yet):
 
 1. Running **_"Should transfer sol when executed"_** on both contracts:
  - Child PDA: 4819 units
 ```
-Transaction executed in slot 56923:
-  Signature: 5Gqn4wUr7NjsLBfFTba5xLhv3qhTZCpiGSQrXbfwBmSSekhJptw2syWfdD4w85xZL5xFBcvcdzBxWAUZipzT1TXG
+Transaction executed in slot 65825:
+  Signature: 2D5UaBAumb1iQyjzCZ5hZvFoG4imVpzLxeWWDf9WMVJFfU3cb3hKZ3uky5Z5oZkdFXngkMkeUAQhGKJSAfekwU12
   Status: Ok
   Log Messages:
-    Program 6RRWpDZwNURodVJciemrUVzREgNwDA4YAayygqWQC73R invoke [1]
+    Program AvN4kzrkAMUNjxfQUNGmDGnxwao765tTYVskh8k71Ljg invoke [1]
     Program log: Executing forward instruction, accounts 4
     Program log: child forward_sol {
-    Program consumption: 197287 units remaining
+    Program consumption: 197646 units remaining
     Program 11111111111111111111111111111111 invoke [2]
     Program 11111111111111111111111111111111 success
-    Program consumption: 195376 units remaining
+    Program consumption: 195735 units remaining
     Program log:  } // child forward_sol
-    Program 6RRWpDZwNURodVJciemrUVzREgNwDA4YAayygqWQC73R consumed 4819 of 200000 compute units
-    Program 6RRWpDZwNURodVJciemrUVzREgNwDA4YAayygqWQC73R success
+    Program AvN4kzrkAMUNjxfQUNGmDGnxwao765tTYVskh8k71Ljg consumed 4460 of 200000 compute units
+    Program AvN4kzrkAMUNjxfQUNGmDGnxwao765tTYVskh8k71Ljg success
 ```
 - One PDA: 2356 units
 ```
@@ -113,7 +113,7 @@ Transaction executed in slot 55234:
     Program 6xk9UUsMd5Mh4tVpk9ep64DtGbhcUUoKYBVMLy5vRWcW consumed 2356 of 200000 compute units
     Program 6xk9UUsMd5Mh4tVpk9ep64DtGbhcUUoKYBVMLy5vRWcW success
 
-sol transfer with CPI: (197287 - 195376) = 1911
+sol transfer with CPI: (195735 - 197646) = 1911
 sol transfer with program: (197802 - 198411) = 609
 ```
 2. Running **_"Should transfer tokens when executed"_** on both contracts:
@@ -173,4 +173,5 @@ Transaction executed in slot 58350:
  - security.txt
  - idl
  - close account (execute & close?). revitalize account?
+ - one pda, instead of a u32 for id, should it be a string?
  
