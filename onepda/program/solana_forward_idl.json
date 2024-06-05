@@ -1,0 +1,86 @@
+{
+  "version": "0.1.0",
+  "name": "solana_forward",
+  "instructions": [
+    {
+      "name": "create",
+      "docs": [
+        "Create a new Forward account"
+      ],
+      "accounts": [
+        {
+          "name": "forwardPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destination",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "instructionId": [
+            0
+          ],
+          "id": "u32",
+          "bump": "u8"
+        }
+      ]
+    },
+    {
+      "name": "execute",
+      "docs": [
+        "Executes the forward"
+        "Moves sol and tokens from the forward to the destination"
+      ],
+      "accounts": [
+        {
+          "name": "forwardPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destination",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "instructionId": [
+            1
+          ],
+          "id": "u32",
+          "bump": "u8"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Forward",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "id": "u32",
+            "destination": "publicKey",
+            "bump": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
