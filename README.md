@@ -81,7 +81,7 @@ This has been coded 2 different ways:
 #### Compute costs (rough - no optimisation yet):
 
 1. Running **_"Should transfer sol when executed"_** on both contracts:
- - Child PDA: 4819 units
+ - Child PDA: 4460 units
 ```
 Transaction executed in slot 65825:
   Signature: 2D5UaBAumb1iQyjzCZ5hZvFoG4imVpzLxeWWDf9WMVJFfU3cb3hKZ3uky5Z5oZkdFXngkMkeUAQhGKJSAfekwU12
