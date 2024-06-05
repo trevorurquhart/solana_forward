@@ -17,6 +17,19 @@ use spl_token_2022::{check_spl_token_program_account, check_system_program_accou
 use crate::errors::{assert_that, ForwardError};
 use crate::state::Forward;
 
+
+#[macro_export]
+macro_rules! compute_fn {
+    ($msg:expr=> $($tt:tt)*) => {
+        ::solana_program::msg!(concat!($msg, " {"));
+        ::solana_program::log::sol_log_compute_units();
+        let res = { $($tt)* };
+        ::solana_program::log::sol_log_compute_units();
+        ::solana_program::msg!(concat!(" } // ", $msg));
+        res
+    };
+}
+
 /**
  * Execute the forward instruction
  *
@@ -54,19 +67,15 @@ pub fn execute(
     let destination_account = next_account_info(accounts_iter)?;
     let system_program = next_account_info(accounts_iter)?;
 
-    msg!("validating");
-
-
     check_system_program_account(system_program.key)?;
     let forward = validate_and_get_forward(program_id, &forward_account)?;
     assert_that("Destination is valid", *destination_account.key == forward.destination, ProgramError::from(ForwardError::InvalidDestination))?;
-
-    msg!("validation done");
 
 
     maybe_forward_tokens(&forward, forward_account, forward_pda, destination_account, system_program, accounts_iter)
         .and_then(|_|
             forward_sol(forward, forward_account, forward_pda, destination_account))
+
 }
 
 
@@ -86,14 +95,9 @@ fn maybe_forward_tokens<'a>(
 
     if let (Some(signer), Some(token_program), Some(ata_token)) = (accounts_iter.next(), accounts_iter.next(), accounts_iter.next()) {
 
-        msg!("validating for token transfer");
-
         check_spl_token_program_account(token_program.key)?;
         assert_that("Associated token account id is correct", spl_associated_token_account::check_id(ata_token.key), ProgramError::IncorrectProgramId)?;
         assert_that("Signer is signer", signer.is_signer, ProgramError::MissingRequiredSignature)?;
-
-
-        msg!("forwarding tokens");
 
         return forward_tokens(token_program, &forward, forward_account, forward_pda, destination_account, signer, system_program, ata_token, accounts_iter);
     }
@@ -113,9 +117,9 @@ fn forward_tokens<'a>(
 ) -> ProgramResult {
 
     while let (Some(mint), Some(forward_ata), Some(target_ata)) = (accounts_iter.next(), accounts_iter.next(), accounts_iter.next()) {
-        msg!("forwarding token");
 
         forward_token(forward, token_program, mint, forward_account, forward_pda, target_account, forward_ata, target_ata, signer, system_program, ata_program)?;
+
     }
 
     Ok(())
@@ -135,13 +139,10 @@ fn forward_token<'a>(
     ata_program: &AccountInfo<'a>,
 ) -> ProgramResult {
 
-    msg!("checking forward ata");
-
     assert_that("Forward ATA is valid for forward pda",
                 *forward_ata_account.key == get_associated_token_address_with_program_id(&forward_pda.key, mint_account.key, token_program.key),
                 ProgramError::from(ForwardError::InvalidTokenSource))?;
 
-    msg!("checking destination ata");
     assert_that("Destination ATA is valid for destination",
                 *target_ata_account.key == get_associated_token_address_with_program_id(&target_account.key, mint_account.key, token_program.key),
                 ProgramError::from(ForwardError::InvalidTokenDestination))?;
@@ -151,10 +152,7 @@ fn forward_token<'a>(
                 maybe_forward_ata.is_ok(),
                 ProgramError::from(ForwardError::ForwardAlreadyExists))?;
 
-
-    msg!("unpacking forward ata");
     let forward_ata_state = maybe_forward_ata.unwrap();
-    msg!("forward_ata_state unpacked");
 
     let token_balance = forward_ata_state.amount;
     if token_balance == 0 {
@@ -170,7 +168,6 @@ fn forward_token<'a>(
     // [] System program
     // [] SPL Token program
     // [] ATA Token program <--- NOT IN THE DOCS!!!!
-
 
     invoke(
         &create_associated_token_account_idempotent(
@@ -212,12 +209,14 @@ fn forward_token<'a>(
 
 fn forward_sol<'a>(forward: Forward, forward_account: &AccountInfo<'a>, forward_pda: &AccountInfo<'a>, destination_account: &AccountInfo<'a>) -> ProgramResult {
     //Forward pda is potentially not owned by the program in this case, which makes this a cross-program invocation
-    let available_sol = forward_pda.lamports();
-    invoke_signed(
-        &transfer(forward_pda.key, destination_account.key, available_sol),
-        &[forward_pda.clone(), destination_account.clone()],
-        &[&[Forward::FORWARD_SEED.as_ref(), forward_account.key.as_ref(), &[forward.bump]]]
-    )
+    compute_fn! { "child forward_sol" => {
+        let available_sol = forward_pda.lamports();
+        invoke_signed(
+            &transfer(forward_pda.key, destination_account.key, available_sol),
+            &[forward_pda.clone(), destination_account.clone()],
+            &[&[Forward::FORWARD_SEED.as_ref(), forward_account.key.as_ref(), &[forward.bump]]]
+            )
+    }}
 }
 
 

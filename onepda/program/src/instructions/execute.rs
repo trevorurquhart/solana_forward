@@ -19,6 +19,18 @@ use spl_token_2022::state::{Account, Mint};
 use crate::errors::{assert_that, ForwardError};
 use crate::state::Forward;
 
+#[macro_export]
+macro_rules! compute_fn {
+    ($msg:expr=> $($tt:tt)*) => {
+        ::solana_program::msg!(concat!($msg, " {"));
+        ::solana_program::log::sol_log_compute_units();
+        let res = { $($tt)* };
+        ::solana_program::log::sol_log_compute_units();
+        ::solana_program::msg!(concat!(" } // ", $msg));
+        res
+    };
+}
+
 /**
  * Execute the forward instruction
  *
@@ -59,6 +71,7 @@ pub fn execute(
     maybe_forward_tokens(&&forward, forward_account, destination_account, accounts_iter)
         .and_then(|_|
             forward_sol(forward_account, destination_account))
+
 }
 
 fn maybe_forward_tokens<'a>(
@@ -67,9 +80,7 @@ fn maybe_forward_tokens<'a>(
     target_account: &AccountInfo<'a>,
     accounts_iter: &mut Iter<AccountInfo<'a>>,
 ) -> ProgramResult {
-
     if let (Some(signer), Some(system_program), Some(token_program), Some(ata_token)) = (accounts_iter.next(), accounts_iter.next(), accounts_iter.next(), accounts_iter.next()) {
-
         check_spl_token_program_account(token_program.key)?;
         check_system_program_account(system_program.key)?;
         assert_that("Signer is signer", signer.is_signer, ProgramError::MissingRequiredSignature)?;
@@ -89,7 +100,6 @@ fn forward_tokens<'a>(
     ata_program: &AccountInfo<'a>,
     accounts_iter: &mut Iter<AccountInfo<'a>>,
 ) -> ProgramResult {
-
     while let (Some(mint), Some(forward_ata), Some(target_ata)) = (accounts_iter.next(), accounts_iter.next(), accounts_iter.next()) {
         forward_token(forward, token_program, mint, forward_account, target_account, forward_ata, target_ata, signer, system_program, ata_program)?;
     }
@@ -109,7 +119,6 @@ fn forward_token<'a>(
     system_program: &AccountInfo<'a>,
     ata_program: &AccountInfo<'a>,
 ) -> ProgramResult {
-
     assert_that("Forward ATA matches forward",
                 *forward_ata_account.key == get_associated_token_address_with_program_id(&forward_account.key, mint_account.key, token_program.key),
                 ProgramError::from(ForwardError::InvalidTokenSource))?;
@@ -177,15 +186,16 @@ fn forward_token<'a>(
 }
 
 fn forward_sol(forward_account: &AccountInfo, destination_account: &AccountInfo) -> ProgramResult {
+    compute_fn! { "onepda forward_sol" => {
+        let rent_balance = Rent::get()?.minimum_balance(forward_account.data_len());
+        let available_sol = forward_account.lamports().checked_sub(rent_balance).ok_or(ForwardError::UnderflowError)?;
 
-    let rent_balance = Rent::get()?.minimum_balance(forward_account.data_len());
-    let available_sol = forward_account.lamports().checked_sub(rent_balance).ok_or(ForwardError::UnderflowError)?;
-
-    if available_sol > 0 {
-        **forward_account.try_borrow_mut_lamports()? = rent_balance;
-        **destination_account.try_borrow_mut_lamports()? = destination_account.lamports().checked_add(available_sol).ok_or(ForwardError::OverflowError)?;
-    }
-    Ok(())
+        if available_sol > 0 {
+            **forward_account.try_borrow_mut_lamports()? = rent_balance;
+            **destination_account.try_borrow_mut_lamports()? = destination_account.lamports().checked_add(available_sol).ok_or(ForwardError::OverflowError)?;
+        }
+        Ok(())
+    }}
 }
 
 fn validate_and_get_forward(program_id: &Pubkey, forward_account: &&AccountInfo) -> Result<Forward, ProgramError> {
