@@ -1,6 +1,9 @@
 /target
 /test-ledger/
 /node_modules/
-/onepda/test-ledger/
 /onepda/program/target/
+/onepda/node_modules/
+/onepda/test-ledger/
 /childpda/program/target/
+/childpda/node_modules/
+/childpda/test-ledger/
