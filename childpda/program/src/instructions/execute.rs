@@ -99,26 +99,26 @@ fn maybe_forward_tokens<'a>(
         assert_that("Associated token account id is correct", spl_associated_token_account::check_id(ata_token.key), ProgramError::IncorrectProgramId)?;
         assert_that("Signer is signer", signer.is_signer, ProgramError::MissingRequiredSignature)?;
 
-        return forward_tokens(token_program, &forward, forward_account, forward_pda, destination_account, signer, system_program, ata_token, accounts_iter);
+        return forward_tokens(&forward, forward_account, forward_pda, destination_account, system_program, signer, token_program, ata_token, accounts_iter);
     }
     Ok(())
 }
 
 fn forward_tokens<'a>(
-    token_program: &AccountInfo<'a>,
     forward: &Forward,
     forward_account: &AccountInfo<'a>,
     forward_pda: &AccountInfo<'a>,
     target_account: &AccountInfo<'a>,
-    signer: &AccountInfo<'a>,
     system_program: &AccountInfo<'a>,
+    signer: &AccountInfo<'a>,
+    token_program: &AccountInfo<'a>,
     ata_program: &AccountInfo<'a>,
     accounts_iter: &mut Iter<AccountInfo<'a>>,
 ) -> ProgramResult {
 
     while let (Some(mint), Some(forward_ata), Some(target_ata)) = (accounts_iter.next(), accounts_iter.next(), accounts_iter.next()) {
 
-        forward_token(forward, token_program, mint, forward_account, forward_pda, target_account, forward_ata, target_ata, signer, system_program, ata_program)?;
+        forward_token(forward, forward_account, forward_pda, target_account, system_program, signer, token_program, ata_program, mint, forward_ata, target_ata)?;
 
     }
 
@@ -127,16 +127,16 @@ fn forward_tokens<'a>(
 
 fn forward_token<'a>(
     forward: &Forward,
-    token_program: &AccountInfo<'a>,
-    mint_account: &AccountInfo<'a>,
     forward_account: &AccountInfo<'a>,
     forward_pda: &AccountInfo<'a>,
     target_account: &AccountInfo<'a>,
+    system_program: &AccountInfo<'a>,
+    signer: &AccountInfo<'a>,
+    token_program: &AccountInfo<'a>,
+    ata_program: &AccountInfo<'a>,
+    mint_account: &AccountInfo<'a>,
     forward_ata_account: &AccountInfo<'a>,
     target_ata_account: &AccountInfo<'a>,
-    signer: &AccountInfo<'a>,
-    system_program: &AccountInfo<'a>,
-    ata_program: &AccountInfo<'a>,
 ) -> ProgramResult {
 
     assert_that("Forward ATA is valid for forward pda",

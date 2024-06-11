@@ -4,6 +4,7 @@ use solana_program::program::invoke;
 use solana_program::program_error::ProgramError;
 use solana_program::program_pack::Pack;
 use spl_token::state::Account as SplTokenAccount;
+use spl_token_2022::check_system_program_account;
 use spl_token_2022::state::Account as SplToken2022Account;
 
 use crate::errors::{assert_that, ForwardError};
@@ -25,20 +26,20 @@ pub fn create(
     let forward_account = next_account_info(accounts_iter)?;
     let destination_account = next_account_info(accounts_iter)?;
     let payer = next_account_info(accounts_iter)?;
-    let system_account = next_account_info(accounts_iter)?;
+    let system_program = next_account_info(accounts_iter)?;
 
-    validate(program_id, system_account, forward_account, destination_account, &instr)
+    validate(program_id, forward_account, destination_account, system_program, &instr)
         .and_then(|_|
-            create_forward_account(&program_id, &instr, &payer, &system_account, &forward_account, &destination_account.key))
+            create_forward_account(&program_id, &forward_account, &destination_account.key, &system_program, &payer, &instr))
 }
 
 fn create_forward_account<'a>(
     program_id: &Pubkey,
-    instr: &CreateForwardInstruction,
-    payer: &AccountInfo<'a>,
-    system_account: &AccountInfo<'a>,
     forward_account: &AccountInfo<'a>,
-    destination_key: &Pubkey
+    destination_key: &Pubkey,
+    system_program: &AccountInfo<'a>,
+    payer: &AccountInfo<'a>,
+    instr: &CreateForwardInstruction
 ) -> ProgramResult {
 
     invoke(&system_instruction::create_account(
@@ -51,7 +52,7 @@ fn create_forward_account<'a>(
            &[
                payer.clone(),
                forward_account.clone(),
-               system_account.clone(),
+               system_program.clone(),
            ],
     )?;
 
@@ -68,13 +69,13 @@ fn create_forward_account<'a>(
 
 fn validate(
     program_id: &Pubkey,
-    system_account: &AccountInfo,
     forward_account: &AccountInfo,
     destination_account: &AccountInfo,
+    system_program: &AccountInfo,
     instr: &CreateForwardInstruction,
 ) -> ProgramResult {
 
-    assert_that("System program is correct", system_account.key == &solana_program::system_program::id(), ProgramError::IncorrectProgramId)?;
+    check_system_program_account(system_program.key)?;
 
     //TODO - is the 2nd condition necessary?
     assert_that("Forward does not exist",
