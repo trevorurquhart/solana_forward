@@ -9,6 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/onepda/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/onepda/program/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
+      <excludeFolder url="file://$MODULE_DIR$/childpda/program/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -10,10 +10,9 @@ use solana_program::pubkey::Pubkey;
 use solana_program::system_instruction::transfer;
 use spl_associated_token_account::{get_associated_token_address_with_program_id};
 use spl_associated_token_account::instruction::create_associated_token_account_idempotent;
-use spl_token::instruction::transfer_checked;
-use spl_token::state::{Account, Mint};
 use spl_token_2022::{check_spl_token_program_account, check_system_program_account};
-
+use spl_token_2022::instruction::transfer_checked;
+use spl_token_2022::state::{Account, Mint};
 use crate::errors::{assert_that, ForwardError};
 use crate::state::Forward;
 
@@ -147,13 +146,7 @@ fn forward_token<'a>(
                 *target_ata_account.key == get_associated_token_address_with_program_id(&target_account.key, mint_account.key, token_program.key),
                 ProgramError::from(ForwardError::InvalidTokenDestination))?;
 
-    let maybe_forward_ata = Account::unpack(&forward_ata_account.data.borrow());
-    assert_that("Forward ATA exists",
-                maybe_forward_ata.is_ok(),
-                ProgramError::from(ForwardError::ForwardAlreadyExists))?;
-
-    let forward_ata_state = maybe_forward_ata.unwrap();
-
+    let forward_ata_state =  Account::unpack_from_slice(&forward_ata_account.data.borrow())?;
     let token_balance = forward_ata_state.amount;
     if token_balance == 0 {
         return Ok(());

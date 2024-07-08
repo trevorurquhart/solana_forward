@@ -1,4 +1,12 @@
-import {ConfirmOptions, Connection, PublicKey, sendAndConfirmTransaction, Signer, Transaction} from "@solana/web3.js";
+import {
+    Commitment,
+    ConfirmOptions,
+    Connection,
+    PublicKey,
+    sendAndConfirmTransaction,
+    Signer,
+    Transaction
+} from "@solana/web3.js";
 import {
     ASSOCIATED_TOKEN_PROGRAM_ID,
     createAssociatedTokenAccountIdempotentInstruction, createMint,
@@ -31,9 +39,9 @@ export async function createATA(
     return associatedToken;
 }
 
-export async function createAndFundAta(mint, to, mintAmount, payer, mintAuthority, connection)
+export async function createAndFundAta(mint, to, mintAmount, payer, mintAuthority, connection, programId = TOKEN_PROGRAM_ID)
 {
-    const ata = await createATA(mint, to, true, payer, connection);
-    await mintTo(connection, payer, mint, ata, mintAuthority, mintAmount);
+    const ata = await createATA(mint, to, true, payer, connection, undefined, programId);
+    await mintTo(connection, payer, mint, ata, mintAuthority, mintAmount, [], undefined, programId);
     return ata;
 }

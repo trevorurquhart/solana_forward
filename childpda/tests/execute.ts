@@ -56,31 +56,31 @@ describe("execute instruction tests", () => {
         } catch (e) {
             console.log(e)
             expect.fail("Should have executed");
-            return;
         }
         const info = await connection.getTokenAccountBalance(destinationAta);
         expect(info.value.uiAmount).to.equal(forwardAmount);
     });
-    //
-    // it.skip("Should transfer tokens using the token 2022 program", async() => {
-    //
-    //
-    //     let token2022Address = await getAssociatedTokenAddressSync(mint, destination.publicKey, false, TOKEN_2022_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID);
-    //     console.log("token2022Address", token2022Address.toBase58())
-    //     // let destinationAta = await createAndFundAta(connection, payer, mint, mintAuthority, 0, destination.publicKey, TOKEN_2022_PROGRAM_ID);
-    //
-    //     // let forwardAmount = 1000;
-    //     // let forwardAta = await createAndFundAta(connection, payer, mint, mintAuthority, forwardAmount, forwardPda, TOKEN_2022_PROGRAM_ID);
-    //     // try {
-    //     //     await executeWithTokens(payer, program, connection, forwardPda, destination, TOKEN_2022_PROGRAM_ID, mint, forwardAta, destinationAta);
-    //     // } catch (e) {
-    //     //     console.log(e)
-    //     // }
-    //     // const info = await connection.getTokenAccountBalance(destinationAta);
-    //     // expect(info.value.uiAmount).to.equal(forwardAmount);
-    // });
-    //
-    //
+
+    it("Should transfer tokens using the token 2022 program", async() => {
+
+        const mint2022Token = await createMint(connection, payer, mintAuthority.publicKey, null, 0, Keypair.generate(),  undefined, TOKEN_2022_PROGRAM_ID);
+        const destinationAta = getAssociatedTokenAddressSync(mint2022Token, destination.publicKey, false, TOKEN_2022_PROGRAM_ID);
+
+        let forwardAmount = 1000;
+        let forwardAta = await createAndFundAta(mint2022Token, forwardPda, forwardAmount, payer, mintAuthority, connection, TOKEN_2022_PROGRAM_ID);
+        const ataInfo = await connection.getTokenAccountBalance(forwardAta);
+        expect(ataInfo.value.uiAmount).to.equal(forwardAmount);
+
+        try {
+            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_2022_PROGRAM_ID, mint2022Token, forwardAta, destinationAta);
+        } catch (e) {
+            console.log(e)
+            expect.fail("Should have executed");
+        }
+        const info = await connection.getTokenAccountBalance(destinationAta);
+        expect(info.value.uiAmount).to.equal(forwardAmount);
+    });
+
     it("Execute will not transfer sol or tokens if there are no funds", async () => {
 
         let destinationTokenBalanceBefore = 1000;
@@ -96,7 +96,6 @@ describe("execute instruction tests", () => {
         } catch (e) {
             console.log(e)
             expect.fail("Should have executed");
-            return;
         }
 
         let destinationBalanceAfter = await connection.getBalance(destination.publicKey);
@@ -127,6 +126,7 @@ describe("execute instruction tests", () => {
             await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2, fwdAtaToken2, destAtaToken2);
         } catch (e) {
             console.error(e);
+            expect.fail("Should have executed");
         }
         const destSolBalance = await connection.getBalance(destination.publicKey);
         const destToken1Balance = (await connection.getTokenAccountBalance(destAtaToken1)).value.uiAmount;
