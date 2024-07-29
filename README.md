@@ -9,11 +9,13 @@ Instructions on how to set up a local environment can be found [here](https://so
 #### Build
 ```bash
 
+
+# Deploy to local validator
+$ cd (onepda|childpda)
+
 # Start local validator:
 $ solana-test-validator
 
-# Deploy to local validator
-$ cd onepda
 # cargo build-bpf
 # solana program deploy ./program/target/so/solana_forward.so
 $ ./build_forward.sh
