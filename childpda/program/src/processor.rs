@@ -19,7 +19,7 @@ pub fn process_instruction(
     let instruction = ForwardInstruction::try_from_slice(instruction_data)?;
 
     match instruction {
-        ForwardInstruction::CreateForward(args) => { create(program_id, accounts, args)}
+        ForwardInstruction::CreateForward(instr) => { create(program_id, accounts, instr)}
         ForwardInstruction::Execute => { execute(program_id, accounts)}
     }
 }
