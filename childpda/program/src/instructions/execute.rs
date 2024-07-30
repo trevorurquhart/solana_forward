@@ -1,5 +1,5 @@
 use std::slice::Iter;
-use borsh::BorshDeserialize;
+use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::account_info::{AccountInfo, next_account_info};
 use solana_program::entrypoint::ProgramResult;
 use solana_program::msg;
@@ -29,6 +29,11 @@ macro_rules! compute_fn {
     };
 }
 
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct ExecuteForwardInstruction {
+    forward_sol: bool
+}
+
 /**
  * Execute the forward instruction
  *
@@ -53,6 +58,7 @@ macro_rules! compute_fn {
 pub fn execute(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
+    instr: ExecuteForwardInstruction,
 ) -> ProgramResult {
 
     msg!("Executing forward instruction, accounts {}", accounts.len());
@@ -73,7 +79,12 @@ pub fn execute(
 
     maybe_forward_tokens(&forward, forward_account, forward_pda, destination_account, system_program, accounts_iter)
         .and_then(|_|
-            forward_sol(forward, forward_account, forward_pda, destination_account))
+        {
+            if instr.forward_sol {
+                return forward_sol(forward, forward_account, forward_pda, destination_account)
+            }
+            Ok(())
+        })
 
 }
 
@@ -201,7 +212,7 @@ fn forward_token<'a>(
 }
 
 fn forward_sol<'a>(forward: Forward, forward_account: &AccountInfo<'a>, forward_pda: &AccountInfo<'a>, destination_account: &AccountInfo<'a>) -> ProgramResult {
-    //Forward pda is potentially not owned by the program in this case, which makes this a cross-program invocation
+    //Forward pda is not necessarily owned by the program, which makes this a cross-program invocation
     compute_fn! { "child forward_sol" => {
         let available_sol = forward_pda.lamports();
         invoke_signed(

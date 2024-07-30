@@ -11,6 +11,7 @@ const connection = new Connection(`http://localhost:8899`, 'confirmed');
 const payer = createKeypairFromFile(require('os').homedir() + '/.config/solana/id.json');
 const program = createKeypairFromFile('./program/target/so/solana_forward_childpda-keypair.json');
 const forwardId = 123456;
+const forwardSol = true;
 
 let destination, forwardAccount, forwardPda, forwardBump, mint, mintAuthority;
 
@@ -32,7 +33,7 @@ describe("execute validation tests", () => {
         await deposit(payer, forwardPda, forwardAmount, connection);
         let invalidDestination = Keypair.generate();
         try {
-            await execute(forwardPda, invalidDestination, forwardAccount.publicKey, program, payer, connection)
+            await execute(forwardPda, invalidDestination, forwardAccount.publicKey, program, payer, connection, forwardSol)
             expect.fail("Should not have executed")
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x3")
@@ -45,7 +46,7 @@ describe("execute validation tests", () => {
         let forwardAta = await createAndFundAta(mint, forwardPda, forwardAmount, payer, mintAuthority, connection);
         try {
             let notTheTokenProgram = SystemProgram.programId;
-            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, notTheTokenProgram, mint, forwardAta, destinationAta);
+            await executeWithTokens(forwardSol, forwardPda, destination, forwardAccount.publicKey, program, payer, connection, notTheTokenProgram, mint, forwardAta, destinationAta);
         } catch (e) {
             expect(e.message).to.contain("incorrect program id for instruction")
             return;
@@ -57,7 +58,7 @@ describe("execute validation tests", () => {
         let destinationAta = await createAndFundAta(mint, destination.publicKey, 0, payer, mintAuthority, connection);
         let invalidForwardAta = Keypair.generate();
         try {
-            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, invalidForwardAta.publicKey, destinationAta);
+            await executeWithTokens(forwardSol, forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, invalidForwardAta.publicKey, destinationAta);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x4")
             return;
@@ -70,7 +71,7 @@ describe("execute validation tests", () => {
         let forwardAta = await createAndFundAta(mint, forwardPda, forwardAmount, payer, mintAuthority, connection);
         let invalidDestination = Keypair.generate();
         try {
-            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, invalidDestination.publicKey);
+            await executeWithTokens(forwardSol, forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, invalidDestination.publicKey);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0x5")
             return;
@@ -82,7 +83,7 @@ describe("execute validation tests", () => {
         let invalidForward = Keypair.generate();
 
         try {
-            await execute(forwardPda, destination, invalidForward.publicKey, program, payer, connection);
+            await execute(forwardPda, destination, invalidForward.publicKey, program, payer, connection, forwardSol);
         } catch (e) {
             expect(e.message).to.contain("incorrect program id for instruction")
             return;
@@ -94,7 +95,7 @@ describe("execute validation tests", () => {
         let forwardAmount = 1000;
         let forwardAta = await createAndFundAta(mint, forwardPda, forwardAmount, payer, mintAuthority, connection);
         try {
-            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta);
+            await executeWithTokens(forwardSol, forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta);
         } catch (e) {
             expect(e.message).to.contain("custom program error: 0xa")
             return;

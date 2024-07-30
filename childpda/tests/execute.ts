@@ -12,6 +12,7 @@ import {
     TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
 import {createAndFundAta} from "./fns/createToken";
+const forwardSol = true;
 
 describe("execute instruction tests", () => {
 
@@ -38,7 +39,7 @@ describe("execute instruction tests", () => {
 
         let destinationBalanceBefore = await connection.getBalance(destination.publicKey);
         try {
-            await execute(forwardPda, destination, forwardAccount.publicKey, program, payer, connection)
+            await execute(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, forwardSol)
         } catch (e) {
             console.log(e)
         }
@@ -52,7 +53,7 @@ describe("execute instruction tests", () => {
         let destinationAta = await createAndFundAta(mint, destination.publicKey, 0, payer, mintAuthority, connection);
         let forwardAta = await createAndFundAta(mint, forwardPda, forwardAmount, payer, mintAuthority, connection);
         try {
-            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+            await executeWithTokens(forwardSol, forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
         } catch (e) {
             console.log(e)
             expect.fail("Should have executed");
@@ -72,7 +73,7 @@ describe("execute instruction tests", () => {
         expect(ataInfo.value.uiAmount).to.equal(forwardAmount);
 
         try {
-            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_2022_PROGRAM_ID, mint2022Token, forwardAta, destinationAta);
+            await executeWithTokens(forwardSol, forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_2022_PROGRAM_ID, mint2022Token, forwardAta, destinationAta);
         } catch (e) {
             console.log(e)
             expect.fail("Should have executed");
@@ -92,7 +93,7 @@ describe("execute instruction tests", () => {
         const forwardAta = await createAndFundAta(mint, forwardPda, 0, payer, mintAuthority, connection);
 
         try {
-            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
+            await executeWithTokens(forwardSol, forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, destinationAta);
         } catch (e) {
             console.log(e)
             expect.fail("Should have executed");
@@ -121,9 +122,12 @@ describe("execute instruction tests", () => {
         const destAtaToken1 = await getAssociatedTokenAddressSync(mint, destination.publicKey);
         const destAtaToken2 = await getAssociatedTokenAddressSync(mint2, destination.publicKey);
 
-
         try {
-            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, fwdAtaToken1, destAtaToken1, mint2, fwdAtaToken2, destAtaToken2);
+            await executeWithTokens(
+                forwardSol, forwardPda, destination, forwardAccount.publicKey,
+                program, payer, connection, TOKEN_PROGRAM_ID,
+                mint, fwdAtaToken1, destAtaToken1,
+                mint2, fwdAtaToken2, destAtaToken2);
         } catch (e) {
             console.error(e);
             expect.fail("Should have executed");
@@ -143,7 +147,7 @@ describe("execute instruction tests", () => {
         let forwardAta = await createAndFundAta(mint, forwardPda, tokenAmount, payer, mintAuthority, connection);
         const uninitialised = await getAssociatedTokenAddressSync(mint, destination.publicKey);
         try {
-            await executeWithTokens(forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, uninitialised);
+            await executeWithTokens(forwardSol, forwardPda, destination, forwardAccount.publicKey, program, payer, connection, TOKEN_PROGRAM_ID, mint, forwardAta, uninitialised);
         } catch (e) {
             console.log(e)
         }

@@ -64,7 +64,8 @@ const ExecuteForwardInstructionSchema = new Map([
     [ ExecuteForwardInstruction, {
         kind: 'struct',
         fields: [
-            ['instruction', 'u8']
+            ['instruction', 'u8'],
+            ['forward_sol', 'u8']
         ],
     }]
 ]);
