@@ -17,6 +17,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+    - name: Debug
+      run: |
+        pwd
+        ls -la
     - name: Build
       working-directory: ../child_pda
       run: cargo build --verbose --manifest-path=./program/Cargo.toml --bpf-out-dir=./program/target/so
