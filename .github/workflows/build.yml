@@ -17,12 +17,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Debug
-      run: |
-        pwd
-        ls -la
     - name: Build
-      working-directory: ../child_pda
+      working-directory: ../childpda
       run: cargo build --verbose --manifest-path=./program/Cargo.toml --bpf-out-dir=./program/target/so
     - name: Use Node.js
       uses: actions/setup-node@v4
