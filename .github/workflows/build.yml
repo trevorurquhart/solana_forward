@@ -19,7 +19,7 @@ jobs:
       uses: actions/checkout@v4
     - name: Build
       working-directory: childpda
-      run: cargo build --verbose --manifest-path=./program/Cargo.toml --bpf-out-dir=./program/target/so
+      run: cargo build-bpf --manifest-path=./program/Cargo.toml --bpf-out-dir=./program/target/so --verbose
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
