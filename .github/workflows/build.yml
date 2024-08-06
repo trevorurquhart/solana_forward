@@ -27,7 +27,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: solana-labs/solana
-        ref: '$SOLANA_VERSION'
+        ref: 'v1.18.21'
         path: 'solana'
 
     - name: Add Solana to Path
