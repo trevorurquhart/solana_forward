@@ -14,16 +14,20 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    container: projectserum/build:v0.24.2
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Prepare cargo
-      working-directory: childpda
-      run: cargo add solana-program --package solana_forward
+    - name: Install solana
+      run: |
+        sh -c "$(curl -sSfL https://release.solana.com/SOLANA_VERSION/install)"
+        echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+#    - name: Prepare cargo
+#      run: cargo add solana-program --package solana_forward
     - name: Build
       working-directory: childpda
-      run: cargo build-bpf --manifest-path=./program/Cargo.toml --bpf-out-dir=./program/target/so --verbose
+      run: cargo build-sbf --manifest-path=./program/Cargo.toml --bpf-out-dir=./program/target/so --verbose
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
