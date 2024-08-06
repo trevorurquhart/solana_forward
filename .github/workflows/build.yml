@@ -8,6 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  SOLANA_VERSION: v1.18.21
 
 jobs:
   build:
@@ -17,6 +18,9 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+    - name: Prepare cargo
+      working-directory: childpda
+      run: cargo add solana-program --package solana_forward
     - name: Build
       working-directory: childpda
       run: cargo build-bpf --manifest-path=./program/Cargo.toml --bpf-out-dir=./program/target/so --verbose
