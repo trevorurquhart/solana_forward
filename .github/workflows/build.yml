@@ -21,7 +21,7 @@ jobs:
       uses: actions/checkout@v4
     - name: Install solana
       run: |
-        sh -c "$(curl -sSfL https://release.solana.com/SOLANA_VERSION/install)"
+        sh -c "$(curl -sSfL https://release.solana.com/$SOLANA_VERSION/install)"
         echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 #    - name: Prepare cargo
 #      run: cargo add solana-program --package solana_forward
