@@ -27,7 +27,7 @@ jobs:
 #      run: cargo add solana-program --package solana_forward
     - name: Build
       working-directory: childpda
-      run: cargo build-sbf --manifest-path=./program/Cargo.toml --bpf-out-dir=./program/target/so --verbose
+      run: cargo build-sbf --manifest-path=./program/Cargo.toml --sbf-out-dir=./program/target/so --verbose
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
