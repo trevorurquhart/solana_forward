@@ -19,12 +19,19 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Install solana
-      run: |
-        sh -c "$(curl -sSfL https://release.solana.com/$SOLANA_VERSION/install)"
-        echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-#    - name: Prepare cargo
-#      run: cargo add solana-program --package solana_forward
+#    - name: Install solana
+#      run: |
+#        sh -c "$(curl -sSfL https://release.solana.com/$SOLANA_VERSION/install)"
+#        echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+    - name: Checkout Solana
+      uses: actions/checkout@v4
+      with:
+        repository: solana-labs/solana
+        ref: '$SOLANA_VERSION'
+        path: 'solana'
+
+    - name: Add Solana to Path
+      run: echo "`pwd`/solana" >> $GITHUB_PATH
     - name: Build
       working-directory: childpda
       run: cargo build-sbf --manifest-path=./program/Cargo.toml --sbf-out-dir=./program/target/so
