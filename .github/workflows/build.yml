@@ -25,8 +25,8 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          $HOME/.local/share/solana/install/releases/$SOLANA_VERSION
-          $HOME/.cache/solana
+          ~/.local/share/solana/install/releases/${{ env.SOLANA_VERSION }}
+          ~/.cache/solana
         key: ${{ runner.os }}-solana-${{ env.SOLANA_VERSION }}
 
     - name: Install solana
@@ -35,8 +35,8 @@ jobs:
 
     - name: Check Solana
       run: |
-        ls $HOME/.local/share/solana/install/ 
-        ls $HOME/.local/share/solana/install/active_release/bin 
+        ls ~/.local/share/solana/install/ 
+        ls ~/.local/share/solana/install/active_release/bin 
 
     - name: Configure Solana
       run: echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
@@ -45,10 +45,10 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          $HOME/.cargo/bin/
-          $HOME/.cargo/registry/index/
-          $HOME/.cargo/registry/cache/
-          $HOME/.cargo/git/db/
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
