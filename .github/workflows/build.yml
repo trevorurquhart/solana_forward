@@ -33,24 +33,37 @@ jobs:
       if: steps.cache-solana.outputs.cache-hit != 'true'
       run: sh -c "$(curl -sSfL https://release.solana.com/$SOLANA_VERSION/install)"
 
-    - name: Check Solana
+    - name: Set Active Solana Version
+      run: |
+        rm -f "~/.local/share/solana/install/active_release"
+        ln -s "~/.local/share/solana/install/releases/$SOLANA_VERSION/solana-release" "$HOME/.local/share/solana/install/active_release"
+      shell: bash
+
+    - name: Check Solana 1
       run: |
         ls ~/.local/share/solana/install/ 
+
+    - name: Check Solana 2
+      run: |
+        ls ~/.local/share/solana/install/releases/$SOLANA_VERSION
+
+    - name: Check Solana 3
+      run: |
         ls ~/.local/share/solana/install/active_release/bin 
 
     - name: Configure Solana
       run: echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-    - name: Set up cargo cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+#    - name: Set up cargo cache
+#      uses: actions/cache@v4
+#      with:
+#        path: |
+#          ~/.cargo/bin/
+#          ~/.cargo/registry/index/
+#          ~/.cargo/registry/cache/
+#          ~/.cargo/git/db/
+#          target/
+#        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
 #    - name: Checkout Solana
 #      uses: actions/checkout@v4
@@ -61,9 +74,9 @@ jobs:
 #
 #    - name: Add Solana to Path
 #      run: echo "`pwd`/solana" >> $GITHUB_PATH
-    - name: Build
-      working-directory: childpda
-      run: cargo build-sbf --manifest-path=./program/Cargo.toml --sbf-out-dir=./program/target/so
+#    - name: Build
+#      working-directory: childpda
+#      run: cargo build-sbf --manifest-path=./program/Cargo.toml --sbf-out-dir=./program/target/so
 #    - name: Use Node.js
 #      uses: actions/setup-node@v4
 #      with:
