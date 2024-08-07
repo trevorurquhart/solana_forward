@@ -31,9 +31,10 @@ jobs:
 
     - name: Install solana
       if: steps.cache-solana.outputs.cache-hit != 'true'
-      run: |
-        sh -c "$(curl -sSfL https://release.solana.com/$SOLANA_VERSION/install)"
-        echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      run: sh -c "$(curl -sSfL https://release.solana.com/$SOLANA_VERSION/install)"
+
+    - name: Configure Solana
+      run: echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
     - name: Set up cargo cache
       uses: actions/cache@v4
