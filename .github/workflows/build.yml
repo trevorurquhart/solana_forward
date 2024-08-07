@@ -34,6 +34,18 @@ jobs:
       run: |
         sh -c "$(curl -sSfL https://release.solana.com/$SOLANA_VERSION/install)"
         echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+    - name: Set up cargo cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
 #    - name: Checkout Solana
 #      uses: actions/checkout@v4
 #      with:
