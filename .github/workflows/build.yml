@@ -25,9 +25,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          ~/.local/share/solana/install/releases/${{ SOLANA_VERSION }}
+          ~/.local/share/solana/install/releases/${{ $SOLANA_VERSION }}
           ~/.cache/solana
-        key: ${{ runner.os }}-solana-${{ SOLANA_VERSION }}
+        key: ${{ runner.os }}-solana-${{ $SOLANA_VERSION }}
 
     - name: Install solana
       if: steps.cache.outputs.cache-hit != 'true'
