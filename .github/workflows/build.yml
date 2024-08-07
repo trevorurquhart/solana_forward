@@ -33,6 +33,11 @@ jobs:
       if: steps.cache-solana.outputs.cache-hit != 'true'
       run: sh -c "$(curl -sSfL https://release.solana.com/$SOLANA_VERSION/install)"
 
+    - name: Check Solana
+      run: |
+        ls "/home/runner/.local/share/solana/install/" 
+        ls "/home/runner/.local/share/solana/install/active_release/bin" 
+
     - name: Configure Solana
       run: echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
