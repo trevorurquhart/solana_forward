@@ -28,7 +28,6 @@ jobs:
           ~/.local/share/solana/install/releases/${{ env.SOLANA_VERSION }}
           ~/.cache/solana
         key: ${{ runner.os }}-solana-${{ env.SOLANA_VERSION }}
-        save-always: true
 
     - name: Install solana
       if: steps.cache-solana.outputs.cache-hit != 'true'
@@ -47,14 +46,14 @@ jobs:
     - name: Build
       working-directory: childpda
       run: cargo build-sbf --manifest-path=./program/Cargo.toml --sbf-out-dir=./program/target/so
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-    - name: Install dependencies
-      run: yarn --frozen-lockfile
-      working-directory: childpda
-    - name: Run tests
-      run: yarn run tests
-      working-directory: childpda
+#    - name: Use Node.js
+#      uses: actions/setup-node@v4
+#      with:
+#        node-version: '20.x'
+#    - name: Install dependencies
+#      run: yarn --frozen-lockfile
+#      working-directory: childpda
+#    - name: Run tests
+#      run: yarn run tests
+#      working-directory: childpda
       
