@@ -36,7 +36,7 @@ jobs:
     - name: Check Solana
       run: |
         ls $HOME/.local/share/solana/install/ 
-        ls $HOME/.local/share/solana/install/active_release/bin" 
+        ls $HOME/.local/share/solana/install/active_release/bin 
 
     - name: Configure Solana
       run: echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
