@@ -28,6 +28,7 @@ jobs:
           ~/.local/share/solana/install/releases/${{ env.SOLANA_VERSION }}
           ~/.cache/solana
         key: ${{ runner.os }}-solana-${{ env.SOLANA_VERSION }}
+        save-always: true
 
     - name: Install solana
       if: steps.cache-solana.outputs.cache-hit != 'true'
