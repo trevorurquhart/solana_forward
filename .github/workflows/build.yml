@@ -41,15 +41,19 @@ jobs:
 
     - name: Check Solana 1
       run: |
-        ls ~/.local/share/solana/install/ 
+        ls -l ~/.local/share/solana/install/ 
 
     - name: Check Solana 2
       run: |
-        ls ~/.local/share/solana/install/releases/$SOLANA_VERSION
+        ls -l ~/.local/share/solana/install/releases/$SOLANA_VERSION
 
     - name: Check Solana 3
       run: |
-        ls ~/.local/share/solana/install/active_release/bin 
+        ls -l ~/.local/share/solana/install/active_release/ 
+
+    - name: Check Solana 4
+      run: |
+        ls -l ~/.local/share/solana/install/active_release/bin         
 
     - name: Configure Solana
       run: echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
