@@ -25,13 +25,13 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          ~/.local/share/solana/install/releases/${{ env.SOLANA_VERSION }}
+          ~/.local/share/solana/install/releases/1.18.21
           ~/.cache/solana
-        key: ${{ runner.os }}-solana-${{ env.SOLANA_VERSION }}
+        key: ${{ runner.os }}-solana-1.18.21
 
     - name: Install solana
       if: steps.cache-solana.outputs.cache-hit != 'true'
-      run: sh -c "$(curl -sSfL https://release.solana.com/v$SOLANA_VERSION/install)"
+      run: sh -c "$(curl -sSfL https://release.solana.com/v1.18.21/install)"
 
     - name: Check Solana 1
       run: |
@@ -39,11 +39,11 @@ jobs:
 
     - name: Check Solana 2
       run: |
-        ls -l ~/.local/share/solana/install/releases/$SOLANA_VERSION
+        ls -l ~/.local/share/solana/install/releases/1.18.21
 
     - name: Check Solana 3
       run: |
-        ls -l "~/.local/share/solana/install/releases/$SOLANA_VERSION/solana-release"
+        ls -l "~/.local/share/solana/install/releases/1.18.21/solana-release"
 
 #    - name: Check Solana 4
 #      run: |
@@ -51,9 +51,9 @@ jobs:
 
     - name: Set Active Solana Version
       run: |
-        ls -l "~/.local/share/solana/install/releases/$SOLANA_VERSION/solana-release"
+        ls -l "~/.local/share/solana/install/releases/1.18.21/solana-release"
         rm -f "~/.local/share/solana/install/active_release"
-        ln -s "~/.local/share/solana/install/releases/$SOLANA_VERSION/solana-release" "~/.local/share/solana/install/active_release"
+        ln -s "~/.local/share/solana/install/releases/1.18.21/solana-release" "~/.local/share/solana/install/active_release"
       shell: bash
 
 
