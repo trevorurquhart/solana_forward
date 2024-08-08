@@ -43,11 +43,11 @@ jobs:
 
     - name: Check Solana 3
       run: |
-        ls -l ~/.local/share/solana/install/active_release/ 
+        ls -l "~/.local/share/solana/install/releases/$SOLANA_VERSION/solana-release"
 
-    - name: Check Solana 4
-      run: |
-        ls -l ~/.local/share/solana/install/active_release/bin         
+#    - name: Check Solana 4
+#      run: |
+#        ls -l ~/.local/share/solana/install/active_release/bin
 
     - name: Set Active Solana Version
       run: |
