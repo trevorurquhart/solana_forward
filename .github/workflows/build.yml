@@ -45,29 +45,20 @@ jobs:
         solana --version
       shell: bash
 
-#    - name: Set up cargo cache
-#      uses: actions/cache@v4
-#      with:
-#        path: |
-#          ~/.cargo/bin/
-#          ~/.cargo/registry/index/
-#          ~/.cargo/registry/cache/
-#          ~/.cargo/git/db/
-#          target/
-#        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - name: Set up cargo cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-#    - name: Checkout Solana
-#      uses: actions/checkout@v4
-#      with:
-#        repository: solana-labs/solana
-#        ref: 'v1.18.21'
-#        path: 'solana'
-#
-#    - name: Add Solana to Path
-#      run: echo "`pwd`/solana" >> $GITHUB_PATH
-#    - name: Build
-#      working-directory: childpda
-#      run: cargo build-sbf --manifest-path=./program/Cargo.toml --sbf-out-dir=./program/target/so
+    - name: Build
+      working-directory: childpda
+      run: cargo build-sbf --manifest-path=./program/Cargo.toml --sbf-out-dir=./program/target/so
 #    - name: Use Node.js
 #      uses: actions/setup-node@v4
 #      with:
