@@ -35,6 +35,7 @@ jobs:
 
     - name: Set Active Solana Version
       run: |
+        lh -l "~/.local/share/solana/install/releases/$SOLANA_VERSION/solana-release"
         rm -f "~/.local/share/solana/install/active_release"
         ln -s "~/.local/share/solana/install/releases/$SOLANA_VERSION/solana-release" "~/.local/share/solana/install/active_release"
       shell: bash
