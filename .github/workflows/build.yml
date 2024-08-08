@@ -67,10 +67,10 @@ jobs:
         cache: 'yarn'
         cache-dependency-path: '**/yarn.lock'
 
-    - uses: actions/cache@v2
+    - uses: actions/cache@v4
       with:
         path: '**/node_modules'
-        key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+        key: ${{ runner.os }}-npm-modules-${{ hashFiles('**/yarn.lock') }}
 
     - name: Child pda yarn dependencies
       run: yarn --frozen-lockfile
@@ -79,9 +79,3 @@ jobs:
     - name: One pda yarn dependencies
       run: yarn --frozen-lockfile
       working-directory: onepda
-
-
-      #    - name: Run tests
-#      run: yarn run tests
-#      working-directory: childpda
-      
