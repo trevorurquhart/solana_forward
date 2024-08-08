@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: v1.18.21
+  SOLANA_VERSION: 1.18.21
 
 jobs:
   build:
@@ -31,7 +31,7 @@ jobs:
 
     - name: Install solana
       if: steps.cache-solana.outputs.cache-hit != 'true'
-      run: sh -c "$(curl -sSfL https://release.solana.com/$SOLANA_VERSION/install)"
+      run: sh -c "$(curl -sSfL https://release.solana.com/v$SOLANA_VERSION/install)"
 
     - name: Set Active Solana Version
       run: |
